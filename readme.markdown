@@ -76,4 +76,4 @@ Desenvolver uma aplicação web com Flask que permita o registro e a consulta de
 | RNF02 | As senhas dos usuários devem ser armazenadas com hash (ex.: bcrypt). | Não Funcional | Alta |
 | RNF03 | O código deve estar organizado seguindo o padrão MVC com Flask Blueprints. | Não Funcional | Média |
 | RNF04 | A aplicação deve carregar as páginas principais em menos de 3 segundos. | Não Funcional | Média |
-| RNF05 | O projeto deve ser versionado no GitHub com commits regulares. | Não Funcional | Média |
+| RNF05 | O projeto deve ser versionado no GitHub com commits regulares. | Não Funcional | Média  |
