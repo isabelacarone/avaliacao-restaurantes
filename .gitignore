@@ -2,11 +2,18 @@
 
 .venv/
 .env
+
 __pycache__/
 *.pyc
+
 *.db
 app/static/uploads/*
+
 !app/static/uploads/.gitkeep
 dist/
 .ruff_cache/
+
 *.egg-info/
+.mesa_certa.egg-info/
+
+docs/
