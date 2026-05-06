@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Avaliar {{ restaurante.nome }} — Mesa Certa{% endblock %}
+
+{% block content %}
+<div style="background:#fff;border-bottom:0.5px solid #e5e5e5;padding:.875rem 1.5rem;display:flex;align-items:center;justify-content:space-between;">
+    <a href="{{ url_for('restaurantes.detalhe', restaurante_id=restaurante.id) }}"
+       style="font-size:13px;color:#666;text-decoration:none;">← Cancelar</a>
+</div>
+
+<div class="container-fluid px-4 py-4" style="max-width:600px;">
+    <h3 style="font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:1.25rem;">
+        Avaliar: {{ restaurante.nome }}
+    </h3>
+
+    <form method="POST" enctype="multipart/form-data" novalidate id="form-avaliacao">
+        {{ form.hidden_tag() }}
+
+        {# Star pickers — hidden selects são enviados, os pickers JS atualizam #}
+        <div class="row g-3 mb-3">
+            {% set criterios_form = [
+                (form.nota_atendimento, 'Atendimento'),
+                (form.nota_ambiente,    'Ambiente'),
+                (form.nota_prato,       'Qualidade do prato'),
+                (form.nota_preco,       'Preço')
+            ] %}
+            {% for campo, rotulo in criterios_form %}
+            <div class="col-6">
+                <label class="form-label-sm">{{ rotulo }}</label>
+                {# Select oculto — valor real enviado ao servidor #}
+                {{ campo(class='d-none', id=campo.id) }}
+                {# Star picker visual #}
+                <div class="star-picker" data-field="{{ campo.id }}">
+                    {% for i in range(1, 6) %}
+                        <button type="button" class="sp-btn" data-val="{{ i }}">★</button>
+                    {% endfor %}
+                </div>
+                {% for erro in campo.errors %}
+                    <div style="font-size:11px;color:#dc3545;margin-top:3px;">{{ erro }}</div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label-sm">Comentário</label>
+            {{ form.comentario(class='form-control', rows=4,
+               placeholder='Conte sua experiência...', style='font-size:13px;') }}
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label-sm">Foto do prato (opcional)</label>
+            {{ form.foto(class='form-control', style='font-size:13px;') }}
+            <div style="font-size:11px;color:#aaa;margin-top:3px;">PNG, JPG, GIF · máx. 2 MB</div>
+        </div>
+
+        <button type="submit" style="width:100%;height:36px;border-radius:8px;background:#D85A30;color:#fff;border:none;font-size:13px;font-weight:500;">
+            Enviar avaliação
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.querySelectorAll('.star-picker').forEach(picker => {
+        const fieldId = picker.dataset.field;
+        const select = document.getElementById(fieldId);
+        const btns = picker.querySelectorAll('.sp-btn');
+
+        function highlight(upTo) {
+            btns.forEach((b, i) => b.classList.toggle('on', i < upTo));
+        }
+
+        btns.forEach((btn, idx) => {
+            btn.addEventListener('click', () => {
+                const val = idx + 1;
+                select.value = String(val);
+                highlight(val);
+            });
+            btn.addEventListener('mouseenter', () => highlight(idx + 1));
+        });
+
+        picker.addEventListener('mouseleave', () => {
+            highlight(Number(select.value) || 0);
+        });
+
+        // Inicializar com valor atual do select (caso haja repost)
+        if (select.value) highlight(Number(select.value));
+    });
+</script>
+{% endblock %}

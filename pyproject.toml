@@ -1,0 +1,32 @@
+[project]
+name = "mesa-certa"
+version = "0.1.0"
+description = "Rede social de avaliação de restaurantes"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.0.0",
+    "flask-sqlalchemy>=3.1.0",
+    "flask-login>=0.6.0",
+    "flask-wtf>=1.2.0",
+    "python-dotenv>=1.0.0",
+    "werkzeug>=3.0.0",
+    "email-validator>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.4.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
