@@ -5,7 +5,7 @@ from flask_login import login_required
 
 from app import db
 from app.forms import RestauranteForm
-from app.models import Restaurante
+from app.models import Avaliacao, Restaurante
 from app.restaurantes import restaurantes_bp
 
 
@@ -51,7 +51,7 @@ def detalhe(restaurante_id: int) -> str:
     restaurante = db.session.get(Restaurante, restaurante_id)
     if not restaurante:
         abort(404)
-    avaliacoes = restaurante.avaliacoes.order_by(None).all()
+    avaliacoes = restaurante.avaliacoes.order_by(Avaliacao.criado_em.desc()).all()
     return render_template(
         "restaurantes/detalhe.html",
         restaurante=restaurante,
