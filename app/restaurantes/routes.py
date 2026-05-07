@@ -74,7 +74,7 @@ def detalhe(restaurante_id: int) -> str:
         for avaliacao in avaliacoes
         if avaliacao.media_calculada is not None
     ]
-    media_geral = round(sum(medias) / len(medias), 1) if medias else None
+    media_geral = round(sum(medias) / len(medias), 1) if len(medias) > 0 else None
     return render_template(
         "restaurantes/detalhe.html",
         restaurante=restaurante,
