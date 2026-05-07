@@ -74,7 +74,7 @@
 <div class="container-fluid px-4 py-4">
     {% if restaurantes %}
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
-            {% for r in restaurantes %}
+            {% for r, media_geral, total_avaliacoes in restaurantes %}
             {% set emoji_data = cat_emoji.get(r.categoria, ('🍽️', 'bg-cat-4')) %}
             <div class="col">
                 <a href="{{ url_for('restaurantes.detalhe', restaurante_id=r.id) }}" class="text-decoration-none">
@@ -87,13 +87,13 @@
                             </div>
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <div class="d-flex gap-1">
-                                    {% if r.media_geral %}
-                                        {% set nota = r.media_geral | round | int %}
+                                    {% if media_geral %}
+                                        {% set nota = media_geral | round | int %}
                                         {% for i in range(5) %}
                                             <span class="star-sq {% if i < nota %}on{% endif %}"></span>
                                         {% endfor %}
                                         <span style="font-size:11px;color:#888;margin-left:2px;">
-                                            {{ r.media_geral }} ({{ r.total_avaliacoes }} av.)
+                                            {{ media_geral | round(1) }} ({{ total_avaliacoes }} av.)
                                         </span>
                                     {% else %}
                                         <span style="font-size:11px;color:#bbb;">Sem avaliações</span>

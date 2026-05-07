@@ -2,6 +2,7 @@
 
 from flask import abort, flash, redirect, render_template, request, url_for
 from flask_login import login_required
+from sqlalchemy import func
 
 from app import db
 from app.forms import RestauranteForm
@@ -16,7 +17,22 @@ def listar() -> str:
     Returns:
         Renderização do template de listagem com os restaurantes filtrados.
     """
-    query = Restaurante.query
+    metricas_subquery = (
+        db.session.query(
+            Avaliacao.restaurante_id.label("restaurante_id"),
+            func.avg(Avaliacao.media_calculada).label("media_geral"),
+            func.count(Avaliacao.id).label("total_avaliacoes"),
+        )
+        .group_by(Avaliacao.restaurante_id)
+        .subquery()
+    )
+    query = db.session.query(
+        Restaurante,
+        metricas_subquery.c.media_geral,
+        func.coalesce(metricas_subquery.c.total_avaliacoes, 0).label(
+            "total_avaliacoes"
+        ),
+    ).outerjoin(metricas_subquery, metricas_subquery.c.restaurante_id == Restaurante.id)
     termo = request.args.get("q", "").strip()
     categoria = request.args.get("categoria", "").strip()
     faixa_preco = request.args.get("faixa_preco", "").strip()
@@ -52,10 +68,19 @@ def detalhe(restaurante_id: int) -> str:
     if not restaurante:
         abort(404)
     avaliacoes = restaurante.avaliacoes.order_by(Avaliacao.criado_em.desc()).all()
+    total_avaliacoes = len(avaliacoes)
+    medias = [
+        avaliacao.media_calculada
+        for avaliacao in avaliacoes
+        if avaliacao.media_calculada is not None
+    ]
+    media_geral = round(sum(medias) / len(medias), 1) if medias else None
     return render_template(
         "restaurantes/detalhe.html",
         restaurante=restaurante,
         avaliacoes=avaliacoes,
+        media_geral=media_geral,
+        total_avaliacoes=total_avaliacoes,
     )
 
 

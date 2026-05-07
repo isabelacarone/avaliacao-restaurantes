@@ -37,6 +37,7 @@ NOTAS: list[tuple[str, str]] = [
     ("4", "4 — Bom"),
     ("5", "5 — Excelente"),
 ]
+NOTAS_AVALIACAO: list[tuple[str, str]] = [("", "Selecione..."), *NOTAS]
 
 EXTENSOES_PERMITIDAS: list[str] = ["png", "jpg", "jpeg", "gif"]
 
@@ -130,22 +131,22 @@ class AvaliacaoForm(FlaskForm):
 
     nota_atendimento = SelectField(
         "Atendimento",
-        choices=NOTAS,
+        choices=NOTAS_AVALIACAO,
         validators=[DataRequired(message="Avalie o atendimento.")],
     )
     nota_ambiente = SelectField(
         "Ambiente",
-        choices=NOTAS,
+        choices=NOTAS_AVALIACAO,
         validators=[DataRequired(message="Avalie o ambiente.")],
     )
     nota_prato = SelectField(
         "Qualidade do prato",
-        choices=NOTAS,
+        choices=NOTAS_AVALIACAO,
         validators=[DataRequired(message="Avalie o prato.")],
     )
     nota_preco = SelectField(
         "Relação preço/qualidade",
-        choices=NOTAS,
+        choices=NOTAS_AVALIACAO,
         validators=[DataRequired(message="Avalie o preço.")],
     )
     comentario = TextAreaField(

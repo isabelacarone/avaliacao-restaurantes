@@ -32,9 +32,9 @@
 
         <div class="d-flex align-items-center gap-4 flex-wrap">
             <div>
-                <div class="big-score">{{ restaurante.media_geral if restaurante.media_geral else '—' }}</div>
+                <div class="big-score">{{ media_geral if media_geral else '—' }}</div>
                 <div style="font-size:11px;color:#888;margin-top:2px;">
-                    {{ restaurante.total_avaliacoes }} avaliação{{ 'ões' if restaurante.total_avaliacoes != 1 else '' }}
+                    {{ total_avaliacoes }} avaliaç{{ 'ão' if total_avaliacoes == 1 else 'ões' }}
                 </div>
             </div>
 
