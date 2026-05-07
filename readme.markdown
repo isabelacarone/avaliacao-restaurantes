@@ -118,7 +118,7 @@ uv run python run.py
 
 ## Verificação rápida do código
 
-O projeto usa [ruff](https://docs.astral.sh/ruff/), garatindo PEP 8
+O projeto usa [ruff](https://docs.astral.sh/ruff/), garantindo PEP 8
 
 ```bash
 # Verificar erros
