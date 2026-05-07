@@ -5,6 +5,7 @@ Execute este arquivo diretamente para iniciar o servidor de desenvolvimento Flas
 """
 
 from dotenv import load_dotenv
+
 from app import create_app
 
 load_dotenv()
