@@ -2,7 +2,8 @@
 
 import os
 
-UPLOAD_FOLDER: str = os.path.join("app", "static", "uploads")
+BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+UPLOAD_FOLDER: str = os.path.join(BASE_DIR, "app", "static", "uploads")
 MAX_CONTENT_LENGTH: int = 2 * 1024 * 1024
 ALLOWED_EXTENSIONS: set[str] = {"png", "jpg", "jpeg", "gif"}
 
