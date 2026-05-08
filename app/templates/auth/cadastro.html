@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Criar conta — Mesa Certa{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-5" style="max-width:400px;margin:0 auto;">
+    <h2 style="font-size:18px;font-weight:500;color:#1a1a1a;margin-bottom:.25rem;">Criar conta</h2>
+    <p style="font-size:13px;color:#888;margin-bottom:1.5rem;">Junte-se à comunidade Mesa Certa</p>
+
+    <div class="auth-card">
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+                <label class="form-label-sm">Nome completo</label>
+                {{ form.nome(class='form-control', placeholder='Seu nome',
+                   style='height:34px;font-size:13px;' + (' border-color:#dc3545;' if form.nome.errors else '')) }}
+                {% for erro in form.nome.errors %}
+                    <div style="font-size:11px;color:#dc3545;margin-top:3px;">{{ erro }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label-sm">E-mail</label>
+                {{ form.email(class='form-control', placeholder='seu@email.com',
+                   style='height:34px;font-size:13px;' + (' border-color:#dc3545;' if form.email.errors else '')) }}
+                {% for erro in form.email.errors %}
+                    <div style="font-size:11px;color:#dc3545;margin-top:3px;">{{ erro }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label-sm">Senha</label>
+                {{ form.senha(class='form-control', placeholder='Mínimo 6 caracteres',
+                   style='height:34px;font-size:13px;' + (' border-color:#dc3545;' if form.senha.errors else '')) }}
+                {% for erro in form.senha.errors %}
+                    <div style="font-size:11px;color:#dc3545;margin-top:3px;">{{ erro }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label-sm">Confirmar senha</label>
+                {{ form.confirmar_senha(class='form-control', placeholder='Repita a senha',
+                   style='height:34px;font-size:13px;' + (' border-color:#dc3545;' if form.confirmar_senha.errors else '')) }}
+                {% for erro in form.confirmar_senha.errors %}
+                    <div style="font-size:11px;color:#dc3545;margin-top:3px;">{{ erro }}</div>
+                {% endfor %}
+            </div>
+
+            <button type="submit"
+                    style="width:100%;height:36px;border-radius:8px;background:#D85A30;color:#fff;border:none;font-size:13px;font-weight:500;">
+                Criar conta
+            </button>
+
+            <div class="divider-ou mt-3">ou</div>
+
+            <a href="{{ url_for('auth.login') }}"
+               style="display:block;text-align:center;width:100%;height:36px;line-height:34px;border-radius:8px;border:0.5px solid #d5d5d5;background:transparent;font-size:13px;color:#1a1a1a;text-decoration:none;">
+                Já tenho conta
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

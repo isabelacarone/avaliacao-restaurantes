@@ -1,79 +1,201 @@
-# Projeto: Rede Social de Avaliação de Restaurantes
+# Mesa Certa: Uma Rede Social de Avaliação de Restaurantes
+
 **Programação Avançada para Web**
 
-**Autores:** **_Isabela Carone, Isabela Campagnollo e João Antônio_**
+**Autores:** Isabela Carone, Isabela Campagnollo e João Antônio
 
 ---
 
-## 1. Introdução
-Este projeto consiste no desenvolvimento de uma plataforma web estática de avaliação de restaurantes, construída com o framework Flask (Python). A aplicação permite que usuários cadastrem avaliações de estabelecimentos gastronômicos com base em critérios objetivos, como atendimento, ambiente, qualidade dos pratos e faixa de preço. A plataforma é acessível por navegadores web.
+## Sobre o projeto
 
-## 2. Objetivos
+Plataforma web para avaliação de restaurantes construída com Flask, onde Usuários cadastram avaliações com notas por critério (atendimento, ambiente, prato, preço), comentário e foto. A aplicação também calcula a nota média de cada restaurante.
 
-### 2.1 Objetivo Geral
-Desenvolver uma aplicação web com Flask que permita o registro e a consulta de avaliações de restaurantes, promovendo maior visibilidade e competitividade entre os estabelecimentos.
-
-### 2.2 Objetivos Específicos
-* Facilitar a forma como restaurantes recebem e visualizam avaliações de seus clientes.
-* Criar um ambiente gastronômico mais competitivo por meio da transparência das avaliações.
-* Permitir que os usuários encontrem restaurantes com base em filtros de localização e faixa de preço.
-* Oferecer uma interface simples e intuitiva para o cadastro de avaliações com texto e fotos.
-
-## 3. Público-alvo
-* Donos e gestores de restaurantes que desejam maior visibilidade e contato com seus clientes.
-* Consumidores que buscam novas experiências gastronômicas e querem embasar suas escolhas em avaliações reais.
-* Usuários que desejam que suas opiniões sobre restaurantes tenham impacto e visibilidade.
-
-## 4. Tecnologias Utilizadas
-* Back-end: Python com Flask
-* Front-end: HTML5, CSS3, Bootstrap 5 (templates Jinja2)
-* Banco de dados: SQLite (via SQLAlchemy)
-* Controle de versão: Git/GitHub
-
-## 5. Funcionalidades da Aplicação
-
-### 5.1 Cadastro e Autenticação de Usuários
-* Registro de novo usuário com nome, e-mail e senha.
-* Login e logout com controle de sessão (Flask-Login).
-* Página de perfil exibindo as avaliações feitas pelo usuário.
-
-### 5.2 Gerenciamento de Restaurantes
-* Cadastro de restaurante com nome, endereço, categoria e faixa de preço.
-* Listagem de todos os restaurantes cadastrados.
-* Página de detalhes de cada restaurante com suas avaliações.
-
-### 5.3 Sistema de Avaliações
-* Registro de avaliação com nota (1 a 5) nos critérios: atendimento, ambiente, qualidade do prato e preço.
-* Adição de comentário textual e upload de uma foto do prato (opcional).
-* Cálculo automático da nota média do restaurante com base nas avaliações recebidas.
-
-### 5.4 Filtro de Busca
-* Busca por nome de restaurante.
-* Filtro por faixa de preço (econômico, moderado, sofisticado).
-* Filtro por categoria (ex.: italiana, japonesa, brasileira).
+**Tecnologias:** Flask 3, SQLAlchemy, Flask-Login, Flask-WTF, Bootstrap 5, SQLite, uv
 
 ---
 
-## 6. Requisitos Funcionais
+## Pré-requisitos
 
-| ID | Descrição | Tipo | Prioridade |
-| :--- | :--- | :--- | :--- |
-| RF01 | O sistema deve permitir o cadastro de novos usuários com nome, e-mail e senha. | Funcional | Alta |
-| RF02 | O sistema deve autenticar usuários via e-mail e senha. | Funcional | Alta |
-| RF03 | O sistema deve permitir o cadastro de restaurantes com nome, endereço, categoria e faixa de preço. | Funcional | Alta |
-| RF04 | O sistema deve exibir a listagem de todos os restaurantes cadastrados. | Funcional | Alta |
-| RF05 | O sistema deve permitir que usuários autenticados registrem avaliações com notas e comentários. | Funcional | Alta |
-| RF06 | O sistema deve calcular e exibir a nota média de cada restaurante. | Funcional | Alta |
-| RF07 | O sistema deve permitir upload de imagem do prato na avaliação. | Funcional | Média |
-| RF08 | O sistema deve permitir a busca de restaurantes por nome, categoria e faixa de preço. | Funcional | Média |
-| RF09 | O sistema deve exibir uma página de perfil com as avaliações do usuário logado. | Funcional | Baixa |
+- Python 3.12+
+- [uv](https://docs.astral.sh/uv/) 
 
-## 7. Requisitos Não Funcionais
+### Instalar o uv (caso não tenha)
 
-| ID | Descrição | Tipo | Prioridade |
-| :--- | :--- | :--- | :--- |
-| RNF01 | A aplicação deve ser responsiva e funcionar em dispositivos móveis e desktops. | Não Funcional | Alta |
-| RNF02 | As senhas dos usuários devem ser armazenadas com hash (ex.: bcrypt). | Não Funcional | Alta |
-| RNF03 | O código deve estar organizado seguindo o padrão MVC com Flask Blueprints. | Não Funcional | Média |
-| RNF04 | A aplicação deve carregar as páginas principais em menos de 3 segundos. | Não Funcional | Média |
-| RNF05 | O projeto deve ser versionado no GitHub com commits regulares. | Não Funcional | Média  |
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Verifique a instalação:
+
+```bash
+uv --version
+```
+
+---
+
+## Configuração do ambiente
+
+### 1. Clonar o repositório
+
+```bash
+git clone <url-do-repositorio>
+cd avaliacao-restaurantes
+```
+
+### 2. Criar o ambiente virtual
+
+```bash
+uv venv --python 3.12
+```
+
+Isso cria a pasta `.venv/` com Python 3.12 isolado.
+
+### 3. Ativar o ambiente virtual
+
+```bash
+# Linux / macOS
+source .venv/bin/activate
+
+# Windows (PowerShell)
+.venv\Scripts\Activate.ps1
+```
+
+### 4. Instalar as dependências
+
+```bash
+uv pip install -e ".[dev]"
+```
+
+__O flag `-e` instala o projeto em modo editável__
+<br>
+__O `[dev]` inclui ferramentas de dev tipo o `ruff`__
+
+---
+
+## Entendendo o uv.lock
+
+O arquivo `uv.lock` registra as versões exatas de todas as dependências resolvidas. Ele garante que todo membro da equipe e qualquer ambiente de CI instale exatamente os mesmos pacotes.
+
+### Quando o uv.lock é atualizado?
+
+- Quando você adiciona ou remove dependências no `pyproject.toml`
+- Quando você roda `uv pip compile` manualmente
+
+### Instalar a partir do lockfile (reproduzir ambiente exato)
+
+```bash
+uv pip sync uv.lock
+```
+### Regenerar o lockfile após mudar dependências
+
+```bash
+# 1. Edite pyproject.toml adicionando/removendo pacotes
+
+# 2. Instale as novas dependências
+uv pip install -e ".[dev]"
+
+# 3. Atualize o lockfile
+uv pip compile pyproject.toml -o uv.lock
+```
+
+### Adicionar uma nova dependência
+
+```bash
+# Edite pyproject.toml manualmente, depois:
+uv pip install <pacote>
+uv pip compile pyproject.toml -o uv.lock
+```
+
+---
+
+## Rodando a aplicação
+
+```bash
+uv run python run.py
+```
+
+---
+
+## Verificação rápida do código
+
+O projeto usa [ruff](https://docs.astral.sh/ruff/), garantindo PEP 8
+
+```bash
+# Verificar erros
+uv run ruff check app/ run.py
+
+# Corrigir automaticamente os erros corrigíveis
+uv run ruff check --fix app/ run.py
+```
+
+---
+<!-- 
+## Estrutura do projeto
+
+```
+avaliacao-restaurantes/
+├── app/
+│   ├── __init__.py          # Application Factory
+│   ├── config.py            # Configurações
+│   ├── models.py            # Usuario, Restaurante, Avaliacao
+│   ├── forms.py             # Formulários WTForms
+│   ├── auth/                # Blueprint: login, cadastro, logout
+│   ├── restaurantes/        # Blueprint: listagem, detalhe, cadastro
+│   ├── avaliacoes/          # Blueprint: nova avaliação
+│   ├── static/uploads/      # Fotos enviadas pelos usuários
+│   └── templates/           # Templates Jinja2 (Bootstrap 5)
+├── docs/                    # Documentação técnica
+│   ├── arquitetura.md
+│   ├── modelos.md
+│   ├── rotas.md
+│   └── proximos-passos.md
+├── run.py                   # Ponto de entrada
+├── pyproject.toml           # Metadados e dependências
+└── uv.lock                  # Lockfile (versões exatas)
+```
+
+---
+
+## Funcionalidades implementadas
+
+| ID | Descrição | Status |
+|---|---|---|
+| RF01 | Cadastro de usuários | ✅ |
+| RF02 | Login/logout | ✅ |
+| RF03 | Cadastro de restaurantes | ✅ |
+| RF04 | Listagem de restaurantes | ✅ |
+| RF05 | Avaliações com notas e comentários | ✅ |
+| RF06 | Cálculo e exibição de nota média | ✅ |
+| RF07 | Upload de foto na avaliação | ✅ |
+| RF08 | Busca por nome, categoria e faixa de preço | ✅ |
+| RF09 | Página de perfil do usuário | 🔲 pendente |
+
+---
+
+## Requisitos Funcionais e Não Funcionais
+
+### Requisitos Funcionais
+
+| ID | Descrição | Prioridade |
+|---|---|---|
+| RF01 | Cadastro com nome, e-mail e senha | Alta |
+| RF02 | Autenticação via e-mail e senha | Alta |
+| RF03 | Cadastro de restaurantes | Alta |
+| RF04 | Listagem de restaurantes | Alta |
+| RF05 | Avaliações com notas e comentários | Alta |
+| RF06 | Cálculo automático de nota média | Alta |
+| RF07 | Upload de imagem na avaliação | Média |
+| RF08 | Busca por nome, categoria e faixa de preço | Média |
+| RF09 | Página de perfil do usuário | Baixa |
+
+### Requisitos Não Funcionais
+
+| ID | Descrição | Status |
+|---|---|---|
+| RNF01 | Interface responsiva (Bootstrap 5) | ✅ |
+| RNF02 | Senhas com hash (Werkzeug PBKDF2) | ✅ |
+| RNF03 | Padrão MVC com Flask Blueprints | ✅ |
+| RNF04 | Páginas carregam em menos de 3 segundos | ✅ |
+| RNF05 | Versionado no GitHub | ✅ |
+
+-->

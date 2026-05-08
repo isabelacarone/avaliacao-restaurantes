@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Restaurantes — Mesa Certa{% endblock %}
+
+{% block content %}
+
+{# Mapeamento categoria → emoji e cor de fundo #}
+{% set cat_emoji = {
+    'italiana': ('🍕', 'bg-cat-1'),
+    'japonesa': ('🍣', 'bg-cat-2'),
+    'brasileira': ('🍖', 'bg-cat-3'),
+    'mexicana': ('🌮', 'bg-cat-4'),
+    'americana': ('🍔', 'bg-cat-5'),
+    'francesa': ('🥐', 'bg-cat-6'),
+    'árabe': ('🥙', 'bg-cat-1'),
+    'vegana': ('🥗', 'bg-cat-2'),
+    'frutos_do_mar': ('🦞', 'bg-cat-3'),
+    'outra': ('🍽️', 'bg-cat-4')
+} %}
+
+<div class="hero-listing">
+    <div class="container-fluid px-4">
+        <h1>Encontre o restaurante certo</h1>
+        <p>Avaliações reais de quem já foi</p>
+        <form method="GET" action="{{ url_for('restaurantes.listar') }}" class="d-flex gap-2 flex-wrap">
+            <input type="text" name="q" value="{{ termo }}" class="form-control"
+                   placeholder="Buscar por nome..." style="max-width:260px;height:36px;">
+            <select name="categoria" class="form-select" style="max-width:160px;height:36px;">
+                <option value="">Categoria</option>
+                <option value="brasileira" {% if categoria == 'brasileira' %}selected{% endif %}>Brasileira</option>
+                <option value="italiana" {% if categoria == 'italiana' %}selected{% endif %}>Italiana</option>
+                <option value="japonesa" {% if categoria == 'japonesa' %}selected{% endif %}>Japonesa</option>
+                <option value="mexicana" {% if categoria == 'mexicana' %}selected{% endif %}>Mexicana</option>
+                <option value="americana" {% if categoria == 'americana' %}selected{% endif %}>Americana</option>
+                <option value="francesa" {% if categoria == 'francesa' %}selected{% endif %}>Francesa</option>
+                <option value="árabe" {% if categoria == 'árabe' %}selected{% endif %}>Árabe</option>
+                <option value="vegana" {% if categoria == 'vegana' %}selected{% endif %}>Vegana</option>
+                <option value="frutos_do_mar" {% if categoria == 'frutos_do_mar' %}selected{% endif %}>Frutos do Mar</option>
+                <option value="outra" {% if categoria == 'outra' %}selected{% endif %}>Outra</option>
+            </select>
+            <select name="faixa_preco" class="form-select" style="max-width:160px;height:36px;">
+                <option value="">Preço</option>
+                <option value="economico" {% if faixa_preco == 'economico' %}selected{% endif %}>Econômico</option>
+                <option value="moderado" {% if faixa_preco == 'moderado' %}selected{% endif %}>Moderado</option>
+                <option value="sofisticado" {% if faixa_preco == 'sofisticado' %}selected{% endif %}>Sofisticado</option>
+            </select>
+            <button type="submit" style="height:36px;padding:0 18px;border-radius:8px;background:#D85A30;color:#fff;border:none;font-size:13px;">
+                Buscar
+            </button>
+        </form>
+    </div>
+</div>
+
+{# Filter tags #}
+<div style="padding:.75rem 1.5rem;display:flex;gap:8px;border-bottom:0.5px solid #e5e5e5;flex-wrap:wrap;background:#fff;">
+    <a href="{{ url_for('restaurantes.listar') }}"
+       class="filter-tag {% if not faixa_preco and not categoria %}active{% endif %}">Todos</a>
+    <a href="{{ url_for('restaurantes.listar', faixa_preco='economico', q=termo) }}"
+       class="filter-tag {% if faixa_preco == 'economico' %}active{% endif %}">Econômico</a>
+    <a href="{{ url_for('restaurantes.listar', faixa_preco='moderado', q=termo) }}"
+       class="filter-tag {% if faixa_preco == 'moderado' %}active{% endif %}">Moderado</a>
+    <a href="{{ url_for('restaurantes.listar', faixa_preco='sofisticado', q=termo) }}"
+       class="filter-tag {% if faixa_preco == 'sofisticado' %}active{% endif %}">Sofisticado</a>
+    <a href="{{ url_for('restaurantes.listar', categoria='italiana', q=termo) }}"
+       class="filter-tag {% if categoria == 'italiana' %}active{% endif %}">Italiana</a>
+    <a href="{{ url_for('restaurantes.listar', categoria='japonesa', q=termo) }}"
+       class="filter-tag {% if categoria == 'japonesa' %}active{% endif %}">Japonesa</a>
+    <a href="{{ url_for('restaurantes.listar', categoria='brasileira', q=termo) }}"
+       class="filter-tag {% if categoria == 'brasileira' %}active{% endif %}">Brasileira</a>
+    <a href="{{ url_for('restaurantes.listar', categoria='vegana', q=termo) }}"
+       class="filter-tag {% if categoria == 'vegana' %}active{% endif %}">Vegana</a>
+</div>
+
+<div class="container-fluid px-4 py-4">
+    {% if restaurantes %}
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+            {% for r, media_geral, total_avaliacoes in restaurantes %}
+            {% set emoji_data = cat_emoji.get(r.categoria, ('🍽️', 'bg-cat-4')) %}
+            <div class="col">
+                <a href="{{ url_for('restaurantes.detalhe', restaurante_id=r.id) }}" class="text-decoration-none">
+                    <div class="rest-card h-100">
+                        <div class="card-emoji-bg {{ emoji_data[1] }}">{{ emoji_data[0] }}</div>
+                        <div class="p-3">
+                            <div class="fw-500 mb-1" style="font-size:13px;color:#1a1a1a;">{{ r.nome }}</div>
+                            <div style="font-size:11px;color:#888;margin-bottom:.5rem;">
+                                {{ r.categoria | capitalize }} · {{ r.endereco | truncate(30, true, '…') }}
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <div class="d-flex gap-1">
+                                    {% if media_geral %}
+                                        {% set nota = media_geral | round | int %}
+                                        {% for i in range(5) %}
+                                            <span class="star-sq {% if i < nota %}on{% endif %}"></span>
+                                        {% endfor %}
+                                        <span style="font-size:11px;color:#888;margin-left:2px;">
+                                            {{ media_geral | round(1) }} ({{ total_avaliacoes }} av.)
+                                        </span>
+                                    {% else %}
+                                        <span style="font-size:11px;color:#bbb;">Sem avaliações</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if r.faixa_preco == 'economico' %}
+                                <span class="badge-eco">Econômico</span>
+                            {% elif r.faixa_preco == 'moderado' %}
+                                <span class="badge-mod">Moderado</span>
+                            {% else %}
+                                <span class="badge-sof">Sofisticado</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <div style="font-size:40px;margin-bottom:.75rem;">🍽️</div>
+            <p style="font-size:14px;color:#888;">Nenhum restaurante encontrado.</p>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('restaurantes.novo') }}" class="btn btn-sm mt-2"
+                   style="background:#D85A30;color:#fff;border-radius:8px;font-size:13px;">
+                    Cadastrar restaurante
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
