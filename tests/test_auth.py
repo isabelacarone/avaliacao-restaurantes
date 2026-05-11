@@ -1,4 +1,4 @@
-"""Testes das rotas de autenticação."""
+"""Testes das rotas de autenticação e validadores de unicidade."""
 
 from app.models import Usuario
 
@@ -18,7 +18,8 @@ def test_cadastro_cria_usuario(client):
     assert Usuario.query.filter_by(email="novo@example.com").first() is not None
 
 
-def test_cadastro_email_duplicado(client, usuario):
+def test_cadastro_email_duplicado_exibe_erro_inline(client, usuario):
+    """UniqueEmail deve devolver erro inline (200) em vez de redirecionar."""
     resp = client.post(
         "/cadastro",
         data={
@@ -30,7 +31,36 @@ def test_cadastro_email_duplicado(client, usuario):
         follow_redirects=True,
     )
     assert resp.status_code == 200
+    # O erro do UniqueEmail aparece inline no formulário
+    assert "cadastrado" in resp.data.decode("utf-8").lower()
     assert Usuario.query.filter_by(email="test@example.com").count() == 1
+
+
+def test_cadastro_email_invalido_exibe_erro(client):
+    """Email com formato inválido deve ser rejeitado."""
+    resp = client.post(
+        "/cadastro",
+        data={
+            "nome": "Teste",
+            "email": "email-invalido",
+            "senha": "senha123",
+            "confirmar_senha": "senha123",
+        },
+        follow_redirects=True,
+    )
+    assert resp.status_code == 200
+    assert Usuario.query.filter_by(email="email-invalido").first() is None
+
+
+def test_cadastro_campo_vazio_rejeitado(client):
+    """Campos obrigatórios vazios devem impedir criação de usuário."""
+    resp = client.post(
+        "/cadastro",
+        data={"nome": "", "email": "", "senha": "", "confirmar_senha": ""},
+        follow_redirects=True,
+    )
+    assert resp.status_code == 200
+    assert Usuario.query.count() == 0
 
 
 def test_login_credenciais_corretas(client, usuario):
