@@ -1,4 +1,4 @@
-"""Testes das rotas de restaurantes."""
+"""Testes das rotas de restaurantes e validador de nome único."""
 
 from app.models import Restaurante
 
@@ -39,6 +39,33 @@ def test_novo_restaurante_autenticado(cliente_logado):
     )
     assert resp.status_code == 200
     assert Restaurante.query.filter_by(nome="Pizzaria Bella").first() is not None
+
+
+def test_novo_restaurante_nome_duplicado_exibe_erro(cliente_logado, restaurante):
+    """UniqueNomeRestaurante deve impedir criação de restaurante duplicado."""
+    resp = cliente_logado.post(
+        "/restaurantes/novo",
+        data={
+            "nome": "Restaurante Teste",
+            "categoria": "brasileira",
+            "faixa_preco": "moderado",
+            "endereco": "Outra rua, 99",
+        },
+        follow_redirects=True,
+    )
+    assert resp.status_code == 200
+    assert Restaurante.query.filter_by(nome="Restaurante Teste").count() == 1
+
+
+def test_novo_restaurante_campo_vazio_rejeitado(cliente_logado):
+    """Campos obrigatórios vazios devem impedir criação de restaurante."""
+    resp = cliente_logado.post(
+        "/restaurantes/novo",
+        data={"nome": "", "categoria": "italiana", "faixa_preco": "moderado", "endereco": ""},
+        follow_redirects=True,
+    )
+    assert resp.status_code == 200
+    assert Restaurante.query.count() == 0
 
 
 def test_listagem_filtro_categoria(client, restaurante):
