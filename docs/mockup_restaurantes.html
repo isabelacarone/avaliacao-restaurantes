@@ -1,0 +1,273 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--color-background-tertiary)}
+.screen-label{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.08em;margin:2rem 0 .5rem;padding:0 .5rem}
+.screen{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:2rem}
+
+/* NAVBAR */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.25rem;height:52px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary)}
+.nav-brand{font-size:15px;font-weight:500;color:var(--color-text-primary);display:flex;align-items:center;gap:8px}
+.nav-brand .dot{width:10px;height:10px;border-radius:50%;background:#D85A30}
+.nav-links{display:flex;gap:1.5rem;align-items:center}
+.nav-link{font-size:13px;color:var(--color-text-secondary)}
+.nav-link.active{color:var(--color-text-primary);font-weight:500}
+.btn-sm{font-size:12px;padding:5px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);cursor:pointer}
+.btn-primary{background:#D85A30;border-color:#D85A30;color:#fff}
+
+/* HERO */
+.hero{padding:2.5rem 1.5rem;background:linear-gradient(135deg,#FAECE7 0%,#F5C4B3 100%)}
+.hero h1{font-size:22px;font-weight:500;color:#4A1B0C;margin-bottom:.5rem}
+.hero p{font-size:13px;color:#712B13;margin-bottom:1.25rem}
+.search-bar{display:flex;gap:8px}
+.search-bar input{flex:1;height:36px;border-radius:var(--border-radius-md);border:0.5px solid #F0997B;background:#fff;padding:0 12px;font-size:13px;color:var(--color-text-primary)}
+.search-bar select{height:36px;border-radius:var(--border-radius-md);border:0.5px solid #F0997B;background:#fff;padding:0 10px;font-size:13px;color:var(--color-text-secondary)}
+.search-bar button{height:36px;padding:0 18px;border-radius:var(--border-radius-md);background:#D85A30;color:#fff;border:none;font-size:13px;cursor:pointer}
+
+/* FILTROS */
+.filters{padding:.75rem 1.25rem;display:flex;gap:8px;border-bottom:0.5px solid var(--color-border-tertiary);flex-wrap:wrap}
+.tag{font-size:12px;padding:4px 12px;border-radius:20px;border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);cursor:pointer}
+.tag.active{background:#FAECE7;border-color:#F0997B;color:#712B13}
+
+/* GRID CARDS */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:1.25rem}
+.card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.card-img{height:90px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.card-img.i1{background:#FAECE7}
+.card-img.i2{background:#E1F5EE}
+.card-img.i3{background:#E6F1FB}
+.card-body{padding:.75rem}
+.card-title{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:2px}
+.card-sub{font-size:11px;color:var(--color-text-secondary);margin-bottom:.5rem}
+.stars{display:flex;align-items:center;gap:4px;margin-bottom:.4rem}
+.star{width:10px;height:10px;border-radius:2px}
+.star.on{background:#EF9F27}
+.star.off{background:var(--color-background-secondary)}
+.star-label{font-size:11px;color:var(--color-text-secondary)}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;background:#EAF3DE;color:#3B6D11}
+.badge.mod{background:#FAEEDA;color:#854F0B}
+.badge.sof{background:#EEEDFE;color:#3C3489}
+
+/* DETALHE */
+.detail-hero{padding:1.5rem;border-bottom:0.5px solid var(--color-border-tertiary)}
+.detail-hero h2{font-size:18px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.detail-hero p{font-size:12px;color:var(--color-text-secondary);margin-bottom:.75rem}
+.detail-meta{display:flex;gap:1rem;align-items:center}
+.big-score{font-size:32px;font-weight:500;color:#D85A30}
+.score-label{font-size:11px;color:var(--color-text-secondary)}
+.bars{flex:1}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.bar-name{font-size:11px;color:var(--color-text-secondary);width:70px}
+.bar-track{flex:1;height:6px;border-radius:3px;background:var(--color-background-secondary);overflow:hidden}
+.bar-fill{height:6px;border-radius:3px;background:#EF9F27}
+.bar-val{font-size:11px;font-weight:500;color:var(--color-text-primary);width:20px;text-align:right}
+
+/* AVALIAÇÕES */
+.reviews{padding:1rem 1.25rem}
+.review-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+.review-header span{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.review-item{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:.75rem;margin-bottom:.75rem}
+.review-top{display:flex;align-items:center;gap:8px;margin-bottom:.4rem}
+.avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500}
+.av1{background:#FAECE7;color:#993C1D}
+.av2{background:#E1F5EE;color:#0F6E56}
+.review-name{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.review-date{font-size:11px;color:var(--color-text-secondary);margin-left:auto}
+.review-text{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+
+/* FORM */
+.form-section{padding:1.25rem}
+.form-section h3{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:1rem}
+.form-group{margin-bottom:.75rem}
+.form-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;display:block}
+.form-input{width:100%;height:34px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:0 10px;font-size:13px;color:var(--color-text-primary);background:var(--color-background-primary)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.star-pick{display:flex;gap:6px}
+.star-pick .sp{width:24px;height:24px;border-radius:4px;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;border:0.5px solid var(--color-border-tertiary)}
+.star-pick .sp.on{background:#FAEEDA;border-color:#EF9F27}
+.form-btn{width:100%;height:36px;border-radius:var(--border-radius-md);background:#D85A30;color:#fff;border:none;font-size:13px;font-weight:500;cursor:pointer;margin-top:.5rem}
+
+/* AUTH */
+.auth-wrap{padding:2rem 1.5rem;max-width:360px;margin:0 auto}
+.auth-wrap h2{font-size:18px;font-weight:500;color:var(--color-text-primary);margin-bottom:.25rem}
+.auth-wrap p{font-size:13px;color:var(--color-text-secondary);margin-bottom:1.5rem}
+.divider{text-align:center;font-size:12px;color:var(--color-text-secondary);margin:.75rem 0;position:relative}
+.divider::before,.divider::after{content:'';position:absolute;top:50%;width:40%;height:0.5px;background:var(--color-border-tertiary)}
+.divider::before{left:0}
+.divider::after{right:0}
+</style>
+
+<p class="screen-label">Tela 1 — Listagem de restaurantes</p>
+<div class="screen">
+  <nav class="nav">
+    <div class="nav-brand"><div class="dot"></div>Mesa Certa</div>
+    <div class="nav-links">
+      <span class="nav-link active">Restaurantes</span>
+      <span class="nav-link">Meu perfil</span>
+      <button class="btn-sm btn-primary">Avaliar</button>
+    </div>
+  </nav>
+  <div class="hero">
+    <h1>Encontre o restaurante certo</h1>
+    <p>Avaliações reais de quem já foi</p>
+    <div class="search-bar">
+      <input placeholder="Buscar por nome...">
+      <select><option>Categoria</option><option>Italiana</option><option>Japonesa</option><option>Brasileira</option></select>
+      <select><option>Preço</option><option>Econômico</option><option>Moderado</option><option>Sofisticado</option></select>
+      <button>Buscar</button>
+    </div>
+  </div>
+  <div class="filters">
+    <span class="tag active">Todos</span>
+    <span class="tag">Econômico</span>
+    <span class="tag">Moderado</span>
+    <span class="tag">Sofisticado</span>
+    <span class="tag">Italiana</span>
+    <span class="tag">Japonesa</span>
+    <span class="tag">Brasileira</span>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <div class="card-img i1">🍕</div>
+      <div class="card-body">
+        <div class="card-title">La Bella Pizza</div>
+        <div class="card-sub">Italiana · Vila Velha</div>
+        <div class="stars">
+          <div class="star on"></div><div class="star on"></div><div class="star on"></div><div class="star on"></div><div class="star off"></div>
+          <span class="star-label">4.2 (18 av.)</span>
+        </div>
+        <span class="badge mod">Moderado</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img i2">🍣</div>
+      <div class="card-body">
+        <div class="card-title">Sakura Sushi</div>
+        <div class="card-sub">Japonesa · Vitória</div>
+        <div class="stars">
+          <div class="star on"></div><div class="star on"></div><div class="star on"></div><div class="star on"></div><div class="star on"></div>
+          <span class="star-label">4.8 (34 av.)</span>
+        </div>
+        <span class="badge sof">Sofisticado</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img i3">🍖</div>
+      <div class="card-body">
+        <div class="card-title">Churrasco do Zé</div>
+        <div class="card-sub">Brasileira · Cariacica</div>
+        <div class="stars">
+          <div class="star on"></div><div class="star on"></div><div class="star on"></div><div class="star off"></div><div class="star off"></div>
+          <span class="star-label">3.5 (9 av.)</span>
+        </div>
+        <span class="badge">Econômico</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="screen-label">Tela 2 — Página do restaurante</p>
+<div class="screen">
+  <nav class="nav">
+    <div class="nav-brand"><div class="dot"></div>Mesa Certa</div>
+    <div class="nav-links">
+      <span class="nav-link">← Voltar</span>
+      <button class="btn-sm btn-primary">Avaliar este restaurante</button>
+    </div>
+  </nav>
+  <div class="detail-hero">
+    <h2>Sakura Sushi</h2>
+    <p>Japonesa · Vitória, ES · Sofisticado</p>
+    <div class="detail-meta">
+      <div>
+        <div class="big-score">4.8</div>
+        <div class="score-label">34 avaliações</div>
+      </div>
+      <div class="bars">
+        <div class="bar-row"><span class="bar-name">Atendimento</span><div class="bar-track"><div class="bar-fill" style="width:96%"></div></div><span class="bar-val">4.8</span></div>
+        <div class="bar-row"><span class="bar-name">Ambiente</span><div class="bar-track"><div class="bar-fill" style="width:90%"></div></div><span class="bar-val">4.5</span></div>
+        <div class="bar-row"><span class="bar-name">Prato</span><div class="bar-track"><div class="bar-fill" style="width:98%"></div></div><span class="bar-val">4.9</span></div>
+        <div class="bar-row"><span class="bar-name">Preço</span><div class="bar-track"><div class="bar-fill" style="width:80%"></div></div><span class="bar-val">4.0</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="reviews">
+    <div class="review-header">
+      <span>Avaliações recentes</span>
+    </div>
+    <div class="review-item">
+      <div class="review-top">
+        <div class="avatar av1">IS</div>
+        <span class="review-name">Isabela S.</span>
+        <div class="stars" style="margin:0"><div class="star on"></div><div class="star on"></div><div class="star on"></div><div class="star on"></div><div class="star on"></div></div>
+        <span class="review-date">há 2 dias</span>
+      </div>
+      <p class="review-text">Experiência incrível! O sashimi estava fresquíssimo e o atendimento foi impecável. Voltarei com certeza.</p>
+    </div>
+    <div class="review-item">
+      <div class="review-top">
+        <div class="avatar av2">MR</div>
+        <span class="review-name">Marcos R.</span>
+        <div class="stars" style="margin:0"><div class="star on"></div><div class="star on"></div><div class="star on"></div><div class="star on"></div><div class="star off"></div></div>
+        <span class="review-date">há 5 dias</span>
+      </div>
+      <p class="review-text">Ambiente muito agradável. O único ponto negativo foi o preço um pouco salgado, mas a qualidade compensa.</p>
+    </div>
+  </div>
+</div>
+
+<p class="screen-label">Tela 3 — Nova avaliação</p>
+<div class="screen">
+  <nav class="nav">
+    <div class="nav-brand"><div class="dot"></div>Mesa Certa</div>
+    <div class="nav-links"><span class="nav-link">← Cancelar</span></div>
+  </nav>
+  <div class="form-section">
+    <h3>Avaliar: Sakura Sushi</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Atendimento</label>
+        <div class="star-pick"><div class="sp on">★</div><div class="sp on">★</div><div class="sp on">★</div><div class="sp on">★</div><div class="sp">★</div></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ambiente</label>
+        <div class="star-pick"><div class="sp on">★</div><div class="sp on">★</div><div class="sp on">★</div><div class="sp on">★</div><div class="sp on">★</div></div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Qualidade do prato</label>
+        <div class="star-pick"><div class="sp on">★</div><div class="sp on">★</div><div class="sp on">★</div><div class="sp on">★</div><div class="sp on">★</div></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Preço</label>
+        <div class="star-pick"><div class="sp on">★</div><div class="sp on">★</div><div class="sp on">★</div><div class="sp">★</div><div class="sp">★</div></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Comentário</label>
+      <textarea class="form-input" style="height:64px;padding:8px 10px;resize:none" placeholder="Conte sua experiência..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Foto do prato (opcional)</label>
+      <input type="text" class="form-input" placeholder="Nenhum arquivo selecionado">
+    </div>
+    <button class="form-btn">Enviar avaliação</button>
+  </div>
+</div>
+
+<p class="screen-label">Tela 4 — Login / Cadastro</p>
+<div class="screen">
+  <nav class="nav">
+    <div class="nav-brand"><div class="dot"></div>Mesa Certa</div>
+  </nav>
+  <div class="auth-wrap">
+    <h2>Entrar na conta</h2>
+    <p>Faça login para registrar avaliações</p>
+    <div class="form-group"><label class="form-label">E-mail</label><input class="form-input" placeholder="seu@email.com"></div>
+    <div class="form-group"><label class="form-label">Senha</label><input class="form-input" placeholder="••••••••" type="password"></div>
+    <button class="form-btn">Entrar</button>
+    <div class="divider">ou</div>
+    <button class="form-btn" style="background:transparent;color:var(--color-text-primary);border:0.5px solid var(--color-border-secondary)">Criar conta</button>
+  </div>
+</div>

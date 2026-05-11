@@ -1,19 +1,32 @@
-# arquivos/pastas que não devem ser commitados 
-
+# Ambiente virtual
 .venv/
+
+# Variáveis de ambiente (nunca commitar segredos)
+# .env.example deve ser rastreado — é um template sem valores reais
 .env
+.env.*
 
-__pycache__/
+# Cache Python
+**/__pycache__/
 *.pyc
+*.pyo
 
-*.db
+# Banco de dados (gerado localmente via flask db upgrade)
+instance/
+
+# Uploads dos usuários (conteúdo gerado em runtime)
 app/static/uploads/*
-
 !app/static/uploads/.gitkeep
+
+# Build e distribuição
 dist/
-.ruff_cache/
-
+build/
 *.egg-info/
-.mesa_certa.egg-info/
 
-docs/
+# Cache do ruff e pytest
+.ruff_cache/
+.pytest_cache/
+
+# Backups e arquivos temporários
+*.bak
+*_test.db
