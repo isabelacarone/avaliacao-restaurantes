@@ -3,6 +3,7 @@
 
 # Variáveis de ambiente (nunca commitar segredos)
 .env
+.env.example
 
 # Cache Python
 **/__pycache__/
@@ -21,8 +22,10 @@ dist/
 build/
 *.egg-info/
 
-# Cache do ruff
+# Cache do ruff e pytest
 .ruff_cache/
+.pytest_cache/
 
-# Backups
+# Backups e arquivos temporários
 *.bak
+*_test.db
