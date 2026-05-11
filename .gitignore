@@ -2,8 +2,9 @@
 .venv/
 
 # Variáveis de ambiente (nunca commitar segredos)
+# .env.example deve ser rastreado — é um template sem valores reais
 .env
-.env.example
+.env.*
 
 # Cache Python
 **/__pycache__/
