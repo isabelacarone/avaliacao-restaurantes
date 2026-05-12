@@ -44,6 +44,12 @@
                 <option value="moderado" {% if faixa_preco == 'moderado' %}selected{% endif %}>Moderado</option>
                 <option value="sofisticado" {% if faixa_preco == 'sofisticado' %}selected{% endif %}>Sofisticado</option>
             </select>
+            <select name="nota_min" class="form-select" style="max-width:140px;height:36px;">
+                <option value="">Nota mín.</option>
+                {% for n in [1, 2, 3, 4, 5] %}
+                <option value="{{ n }}" {% if nota_min and nota_min|int == n %}selected{% endif %}>≥ {{ n }} ★</option>
+                {% endfor %}
+            </select>
             <button type="submit" style="height:36px;padding:0 18px;border-radius:8px;background:#D85A30;color:#fff;border:none;font-size:13px;">
                 Buscar
             </button>
@@ -51,24 +57,34 @@
     </div>
 </div>
 
-{# Filter tags #}
-<div style="padding:.75rem 1.5rem;display:flex;gap:8px;border-bottom:0.5px solid #e5e5e5;flex-wrap:wrap;background:#fff;">
-    <a href="{{ url_for('restaurantes.listar') }}"
-       class="filter-tag {% if not faixa_preco and not categoria %}active{% endif %}">Todos</a>
-    <a href="{{ url_for('restaurantes.listar', faixa_preco='economico', q=termo) }}"
-       class="filter-tag {% if faixa_preco == 'economico' %}active{% endif %}">Econômico</a>
-    <a href="{{ url_for('restaurantes.listar', faixa_preco='moderado', q=termo) }}"
-       class="filter-tag {% if faixa_preco == 'moderado' %}active{% endif %}">Moderado</a>
-    <a href="{{ url_for('restaurantes.listar', faixa_preco='sofisticado', q=termo) }}"
-       class="filter-tag {% if faixa_preco == 'sofisticado' %}active{% endif %}">Sofisticado</a>
-    <a href="{{ url_for('restaurantes.listar', categoria='italiana', q=termo) }}"
-       class="filter-tag {% if categoria == 'italiana' %}active{% endif %}">Italiana</a>
-    <a href="{{ url_for('restaurantes.listar', categoria='japonesa', q=termo) }}"
-       class="filter-tag {% if categoria == 'japonesa' %}active{% endif %}">Japonesa</a>
-    <a href="{{ url_for('restaurantes.listar', categoria='brasileira', q=termo) }}"
-       class="filter-tag {% if categoria == 'brasileira' %}active{% endif %}">Brasileira</a>
-    <a href="{{ url_for('restaurantes.listar', categoria='vegana', q=termo) }}"
-       class="filter-tag {% if categoria == 'vegana' %}active{% endif %}">Vegana</a>
+{# Filter tags + ordenação #}
+<div style="padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid #e5e5e5;flex-wrap:wrap;gap:8px;background:#fff;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="{{ url_for('restaurantes.listar', order=order) }}"
+           class="filter-tag {% if not faixa_preco and not categoria and not nota_min %}active{% endif %}">Todos</a>
+        <a href="{{ url_for('restaurantes.listar', faixa_preco='economico', q=termo, order=order, nota_min=nota_min) }}"
+           class="filter-tag {% if faixa_preco == 'economico' %}active{% endif %}">Econômico</a>
+        <a href="{{ url_for('restaurantes.listar', faixa_preco='moderado', q=termo, order=order, nota_min=nota_min) }}"
+           class="filter-tag {% if faixa_preco == 'moderado' %}active{% endif %}">Moderado</a>
+        <a href="{{ url_for('restaurantes.listar', faixa_preco='sofisticado', q=termo, order=order, nota_min=nota_min) }}"
+           class="filter-tag {% if faixa_preco == 'sofisticado' %}active{% endif %}">Sofisticado</a>
+        <a href="{{ url_for('restaurantes.listar', categoria='italiana', q=termo, order=order, nota_min=nota_min) }}"
+           class="filter-tag {% if categoria == 'italiana' %}active{% endif %}">Italiana</a>
+        <a href="{{ url_for('restaurantes.listar', categoria='japonesa', q=termo, order=order, nota_min=nota_min) }}"
+           class="filter-tag {% if categoria == 'japonesa' %}active{% endif %}">Japonesa</a>
+        <a href="{{ url_for('restaurantes.listar', categoria='brasileira', q=termo, order=order, nota_min=nota_min) }}"
+           class="filter-tag {% if categoria == 'brasileira' %}active{% endif %}">Brasileira</a>
+        <a href="{{ url_for('restaurantes.listar', categoria='vegana', q=termo, order=order, nota_min=nota_min) }}"
+           class="filter-tag {% if categoria == 'vegana' %}active{% endif %}">Vegana</a>
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0;">
+        <a href="{{ url_for('restaurantes.listar', q=termo, categoria=categoria, faixa_preco=faixa_preco, nota_min=nota_min, order='recentes') }}"
+           class="filter-tag {% if order == 'recentes' or not order %}active{% endif %}">Mais recentes</a>
+        <a href="{{ url_for('restaurantes.listar', q=termo, categoria=categoria, faixa_preco=faixa_preco, nota_min=nota_min, order='nota') }}"
+           class="filter-tag {% if order == 'nota' %}active{% endif %}">Melhor nota</a>
+        <a href="{{ url_for('restaurantes.listar', q=termo, categoria=categoria, faixa_preco=faixa_preco, nota_min=nota_min, order='avaliacoes') }}"
+           class="filter-tag {% if order == 'avaliacoes' %}active{% endif %}">Mais avaliados</a>
+    </div>
 </div>
 
 <div class="container-fluid px-4 py-4">
@@ -124,6 +140,40 @@
                 </a>
             {% endif %}
         </div>
+    {% endif %}
+
+    {% if paginacao and paginacao.pages > 1 %}
+    <nav class="d-flex justify-content-center mt-4" aria-label="Paginação">
+        <ul class="pagination pagination-sm mb-0" style="gap:4px;">
+            <li class="page-item {% if not paginacao.has_prev %}disabled{% endif %}">
+                <a class="page-link" style="border-radius:8px;border:0.5px solid #d5d5d5;font-size:12px;color:#666;"
+                   href="{{ url_for('restaurantes.listar', page=paginacao.prev_num, q=termo, categoria=categoria, faixa_preco=faixa_preco, nota_min=nota_min, order=order) }}">
+                    ‹
+                </a>
+            </li>
+            {% for p in paginacao.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if p %}
+                    <li class="page-item {% if p == paginacao.page %}active{% endif %}">
+                        <a class="page-link"
+                           style="border-radius:8px;border:0.5px solid {% if p == paginacao.page %}#D85A30{% else %}#d5d5d5{% endif %};font-size:12px;{% if p == paginacao.page %}background:#D85A30;color:#fff;{% else %}color:#666;{% endif %}"
+                           href="{{ url_for('restaurantes.listar', page=p, q=termo, categoria=categoria, faixa_preco=faixa_preco, nota_min=nota_min, order=order) }}">
+                            {{ p }}
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link" style="border-radius:8px;border:0.5px solid #e5e5e5;font-size:12px;color:#aaa;">…</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item {% if not paginacao.has_next %}disabled{% endif %}">
+                <a class="page-link" style="border-radius:8px;border:0.5px solid #d5d5d5;font-size:12px;color:#666;"
+                   href="{{ url_for('restaurantes.listar', page=paginacao.next_num, q=termo, categoria=categoria, faixa_preco=faixa_preco, nota_min=nota_min, order=order) }}">
+                    ›
+                </a>
+            </li>
+        </ul>
+    </nav>
     {% endif %}
 </div>
 {% endblock %}

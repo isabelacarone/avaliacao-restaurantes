@@ -38,15 +38,14 @@
                 </div>
             </div>
 
-            {% if avaliacoes %}
-            {% set av_list = avaliacoes %}
-            {% set count = av_list | length %}
+            {# Barras de critério calculadas sobre TODAS as avaliações #}
+            {% if avaliacoes_todas %}
             <div style="flex:1;min-width:200px;max-width:400px;">
                 {% set criterios = [
-                    ('Atendimento', av_list | map(attribute='nota_atendimento') | list),
-                    ('Ambiente',    av_list | map(attribute='nota_ambiente') | list),
-                    ('Prato',       av_list | map(attribute='nota_prato') | list),
-                    ('Preço',       av_list | map(attribute='nota_preco') | list)
+                    ('Atendimento', avaliacoes_todas | map(attribute='nota_atendimento') | list),
+                    ('Ambiente',    avaliacoes_todas | map(attribute='nota_ambiente') | list),
+                    ('Prato',       avaliacoes_todas | map(attribute='nota_prato') | list),
+                    ('Preço',       avaliacoes_todas | map(attribute='nota_preco') | list)
                 ] %}
                 {% for nome_c, notas in criterios %}
                 {% set media_c = (notas | sum / notas | length) | round(1) %}
@@ -67,10 +66,14 @@
 <div class="container-fluid px-4 py-4" style="max-width:760px;">
     {% if avaliacoes %}
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <span style="font-size:13px;font-weight:500;color:#1a1a1a;">Avaliações recentes</span>
+            <span style="font-size:13px;font-weight:500;color:#1a1a1a;">
+                Avaliações recentes
+                {% if paginacao.pages > 1 %}
+                <span style="font-weight:400;color:#aaa;">· página {{ paginacao.page }}/{{ paginacao.pages }}</span>
+                {% endif %}
+            </span>
         </div>
         {% for av in avaliacoes %}
-        {% set cores_avatar = ['#FAECE7:#993C1D', '#E1F5EE:#0F6E56', '#E6F1FB:#1B5FA8', '#FFF3DC:#7A5500', '#F0EAFF:#4B2E9B'] %}
         {% set idx = loop.index0 % 5 %}
         {% set bg_av = ['#FAECE7', '#E1F5EE', '#E6F1FB', '#FFF3DC', '#F0EAFF'][idx] %}
         {% set fg_av = ['#993C1D', '#0F6E56', '#1B5FA8', '#7A5500', '#4B2E9B'][idx] %}
@@ -89,14 +92,60 @@
                 <span style="font-size:11px;color:#aaa;margin-left:auto;">{{ av.criado_em.strftime('%d/%m/%Y') }}</span>
             </div>
             {% if av.comentario %}
-                <p style="font-size:12px;color:#555;line-height:1.5;margin-bottom:{% if av.foto_path %}.75rem{% else %}0{% endif %};">{{ av.comentario }}</p>
+                <p style="font-size:12px;color:#555;line-height:1.5;margin-bottom:{% if av.foto_path %}.75rem{% else %}.5rem{% endif %};">{{ av.comentario }}</p>
             {% endif %}
             {% if av.foto_path %}
                 <img src="{{ url_for('static', filename='uploads/' + av.foto_path) }}"
-                     alt="Foto da avaliação" class="rounded" style="max-height:160px;max-width:100%;">
+                     alt="Foto da avaliação" class="rounded mb-2" style="max-height:160px;max-width:100%;">
+            {% endif %}
+            {% if current_user.is_authenticated and current_user.id == av.usuario_id %}
+            <div class="d-flex gap-2 mt-1">
+                <a href="{{ url_for('avaliacoes.editar', avaliacao_id=av.id) }}"
+                   style="font-size:11px;color:#666;text-decoration:none;padding:3px 10px;border:0.5px solid #d5d5d5;border-radius:6px;">
+                    Editar
+                </a>
+                <form method="POST" action="{{ url_for('avaliacoes.excluir', avaliacao_id=av.id) }}"
+                      id="excluir-det-{{ av.id }}" style="margin:0;">
+                    {{ form_csrf.hidden_tag() }}
+                    <button type="button"
+                            onclick="confirmarExclusao('excluir-det-{{ av.id }}', '{{ restaurante.nome | e }}', 'avaliação')"
+                            style="font-size:11px;color:#dc3545;background:transparent;border:0.5px solid #dc3545;border-radius:6px;padding:3px 10px;cursor:pointer;">
+                        Excluir
+                    </button>
+                </form>
+            </div>
             {% endif %}
         </div>
         {% endfor %}
+
+        {% if paginacao.pages > 1 %}
+        <nav class="d-flex justify-content-center mt-4" aria-label="Paginação de avaliações">
+            <ul class="pagination pagination-sm mb-0" style="gap:4px;">
+                <li class="page-item {% if not paginacao.has_prev %}disabled{% endif %}">
+                    <a class="page-link" style="border-radius:8px;border:0.5px solid #d5d5d5;font-size:12px;color:#666;"
+                       href="{{ url_for('restaurantes.detalhe', restaurante_id=restaurante.id, page=paginacao.prev_num) }}">‹</a>
+                </li>
+                {% for p in paginacao.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if p %}
+                        <li class="page-item {% if p == paginacao.page %}active{% endif %}">
+                            <a class="page-link"
+                               style="border-radius:8px;border:0.5px solid {% if p == paginacao.page %}#D85A30{% else %}#d5d5d5{% endif %};font-size:12px;{% if p == paginacao.page %}background:#D85A30;color:#fff;{% else %}color:#666;{% endif %}"
+                               href="{{ url_for('restaurantes.detalhe', restaurante_id=restaurante.id, page=p) }}">{{ p }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link" style="border-radius:8px;border:0.5px solid #e5e5e5;font-size:12px;color:#aaa;">…</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not paginacao.has_next %}disabled{% endif %}">
+                    <a class="page-link" style="border-radius:8px;border:0.5px solid #d5d5d5;font-size:12px;color:#666;"
+                       href="{{ url_for('restaurantes.detalhe', restaurante_id=restaurante.id, page=paginacao.next_num) }}">›</a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+
     {% else %}
         <div class="text-center py-5">
             <div style="font-size:36px;margin-bottom:.5rem;">💬</div>
@@ -111,3 +160,5 @@
     {% endif %}
 </div>
 {% endblock %}
+
+{% block scripts %}{% endblock %}
