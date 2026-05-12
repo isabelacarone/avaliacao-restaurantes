@@ -2,6 +2,7 @@
 
 from flask import abort, flash, redirect, render_template, request, url_for
 from flask_login import login_required
+from flask_wtf import FlaskForm
 from sqlalchemy import func
 
 from app import db
@@ -9,10 +10,30 @@ from app.forms import RestauranteForm
 from app.models import Avaliacao, Restaurante
 from app.restaurantes import restaurantes_bp
 
+_ORDENS_VALIDAS: dict[str, object] = {}
+
+
+def _ordem_clause(order: str, media_col: object, total_col: object) -> object:
+    """Retorna a cláusula ORDER BY correspondente ao parâmetro recebido.
+
+    Args:
+        order: Identificador da ordenação ('recentes', 'nota', 'avaliacoes').
+        media_col: Coluna de média da subquery.
+        total_col: Coluna de total de avaliações da subquery.
+
+    Returns:
+        Expressão SQLAlchemy para ordenação.
+    """
+    if order == "nota":
+        return media_col.desc().nulls_last()
+    if order == "avaliacoes":
+        return total_col.desc()
+    return Restaurante.criado_em.desc()
+
 
 @restaurantes_bp.route("/")
 def listar() -> str:
-    """Lista restaurantes com suporte a filtros por nome, categoria e faixa de preço.
+    """Lista restaurantes com filtros por nome, categoria, faixa de preço e ordenação.
 
     Returns:
         Renderização do template de listagem com os restaurantes filtrados.
@@ -26,16 +47,20 @@ def listar() -> str:
         .group_by(Avaliacao.restaurante_id)
         .subquery()
     )
+    media_col = metricas_subquery.c.media_geral
+    total_col = func.coalesce(metricas_subquery.c.total_avaliacoes, 0)
+
     query = db.session.query(
         Restaurante,
-        metricas_subquery.c.media_geral,
-        func.coalesce(metricas_subquery.c.total_avaliacoes, 0).label(
-            "total_avaliacoes"
-        ),
+        media_col,
+        total_col.label("total_avaliacoes"),
     ).outerjoin(metricas_subquery, metricas_subquery.c.restaurante_id == Restaurante.id)
+
     termo = request.args.get("q", "").strip()
     categoria = request.args.get("categoria", "").strip()
     faixa_preco = request.args.get("faixa_preco", "").strip()
+    order = request.args.get("order", "recentes").strip()
+    nota_min = request.args.get("nota_min", type=float)
 
     if termo:
         query = query.filter(Restaurante.nome.ilike(f"%{termo}%"))
@@ -43,20 +68,28 @@ def listar() -> str:
         query = query.filter(Restaurante.categoria == categoria)
     if faixa_preco:
         query = query.filter(Restaurante.faixa_preco == faixa_preco)
+    if nota_min:
+        query = query.filter(media_col >= nota_min)
 
-    restaurantes = query.order_by(Restaurante.criado_em.desc()).all()
+    page = request.args.get("page", 1, type=int)
+    paginacao = query.order_by(_ordem_clause(order, media_col, total_col)).paginate(
+        page=page, per_page=12, error_out=False
+    )
     return render_template(
         "restaurantes/listar.html",
-        restaurantes=restaurantes,
+        restaurantes=paginacao.items,
+        paginacao=paginacao,
         termo=termo,
         categoria=categoria,
         faixa_preco=faixa_preco,
+        order=order,
+        nota_min=nota_min,
     )
 
 
 @restaurantes_bp.route("/restaurantes/<int:restaurante_id>")
 def detalhe(restaurante_id: int) -> str:
-    """Exibe os detalhes e avaliações de um restaurante específico.
+    """Exibe os detalhes e avaliações paginadas de um restaurante específico.
 
     Args:
         restaurante_id: ID do restaurante a ser exibido.
@@ -67,20 +100,24 @@ def detalhe(restaurante_id: int) -> str:
     restaurante = db.session.get(Restaurante, restaurante_id)
     if not restaurante:
         abort(404)
-    avaliacoes = restaurante.avaliacoes.order_by(Avaliacao.criado_em.desc()).all()
-    total_avaliacoes = len(avaliacoes)
-    medias = [
-        avaliacao.media_calculada
-        for avaliacao in avaliacoes
-        if avaliacao.media_calculada is not None
-    ]
-    media_geral = round(sum(medias) / len(medias), 1) if len(medias) > 0 else None
+
+    todas = restaurante.avaliacoes.order_by(Avaliacao.criado_em.desc()).all()
+    medias = [av.media_calculada for av in todas if av.media_calculada is not None]
+    media_geral = round(sum(medias) / len(medias), 1) if medias else None
+
+    page = request.args.get("page", 1, type=int)
+    paginacao = restaurante.avaliacoes.order_by(Avaliacao.criado_em.desc()).paginate(
+        page=page, per_page=8, error_out=False
+    )
     return render_template(
         "restaurantes/detalhe.html",
         restaurante=restaurante,
-        avaliacoes=avaliacoes,
+        avaliacoes=paginacao.items,
+        avaliacoes_todas=todas,
+        paginacao=paginacao,
         media_geral=media_geral,
-        total_avaliacoes=total_avaliacoes,
+        total_avaliacoes=len(todas),
+        form_csrf=FlaskForm(),
     )
 
 

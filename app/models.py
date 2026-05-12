@@ -1,6 +1,6 @@
 """Modelos de dados da aplicação Mesa Certa."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -26,7 +26,9 @@ class Usuario(UserMixin, db.Model):
     nome: str = db.Column(db.String(120), nullable=False)
     email: str = db.Column(db.String(150), unique=True, nullable=False)
     senha_hash: str = db.Column(db.String(256), nullable=False)
-    criado_em: datetime = db.Column(db.DateTime, default=datetime.utcnow)
+    criado_em: datetime = db.Column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
     avaliacoes = db.relationship(
         "Avaliacao", backref="autor", cascade="all, delete-orphan", lazy="dynamic"
     )
@@ -77,7 +79,9 @@ class Restaurante(db.Model):
     faixa_preco: str = db.Column(db.String(30), nullable=False)
     endereco: str = db.Column(db.String(200), nullable=False)
     descricao: str = db.Column(db.Text, nullable=True)
-    criado_em: datetime = db.Column(db.DateTime, default=datetime.utcnow)
+    criado_em: datetime = db.Column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
     avaliacoes = db.relationship("Avaliacao", backref="restaurante", lazy="dynamic")
 
     @property
@@ -139,7 +143,9 @@ class Avaliacao(db.Model):
     media_calculada: float = db.Column(db.Float, nullable=True)
     comentario: str = db.Column(db.Text, nullable=True)
     foto_path: str = db.Column(db.String(256), nullable=True)
-    criado_em: datetime = db.Column(db.DateTime, default=datetime.utcnow)
+    criado_em: datetime = db.Column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
 
     def calcular_media(self) -> None:
         """Calcula e armazena a média aritmética dos quatro critérios de avaliação."""
