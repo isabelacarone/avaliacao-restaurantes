@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Página não encontrada — Mesa Certa{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-5 text-center" style="max-width:480px;margin:0 auto;">
+    <div style="font-size:56px;margin-bottom:.5rem;">🍽️</div>
+    <h2 style="font-size:20px;font-weight:500;color:#1a1a1a;margin-bottom:.5rem;">Página não encontrada</h2>
+    <p style="font-size:13px;color:#888;margin-bottom:1.5rem;">
+        O endereço que você acessou não existe ou foi removido.
+    </p>
+    <a href="{{ url_for('restaurantes.listar') }}"
+       style="display:inline-block;padding:8px 24px;border-radius:8px;background:#D85A30;color:#fff;font-size:13px;text-decoration:none;">
+        Voltar à listagem
+    </a>
+</div>
+{% endblock %}
