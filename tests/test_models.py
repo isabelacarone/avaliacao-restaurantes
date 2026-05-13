@@ -5,7 +5,6 @@ import pytest
 from app import db
 from app.models import Avaliacao, Restaurante, Usuario
 
-
 # ---------------------------------------------------------------------------
 # Usuario
 # ---------------------------------------------------------------------------
@@ -243,7 +242,6 @@ def test_unique_email_permite_proprio_email_com_exclude_id(app_ctx, usuario):
 
 def test_unique_email_bloqueia_email_de_outro_usuario(app_ctx, usuario):
     """UniqueEmail com exclude_id de outro usuário deve bloquear e-mail duplicado."""
-    import pytest
     from wtforms.validators import ValidationError
 
     from app.validators import UniqueEmail
@@ -276,7 +274,6 @@ def test_unique_nome_restaurante_permite_proprio_nome_com_exclude_id(app_ctx, re
 
 def test_unique_nome_restaurante_bloqueia_nome_de_outro(app_ctx, restaurante):
     """UniqueNomeRestaurante com exclude_id de outro deve bloquear nome duplicado."""
-    import pytest
     from wtforms.validators import ValidationError
 
     from app.validators import UniqueNomeRestaurante
