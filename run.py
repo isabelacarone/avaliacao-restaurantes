@@ -1,8 +1,4 @@
-"""Ponto de entrada da aplicação Mesa Certa.
-
-Execute este arquivo diretamente para iniciar o servidor de desenvolvimento Flask:
-    uv run python run.py
-"""
+"Run da aplicação"
 
 from dotenv import load_dotenv
 
