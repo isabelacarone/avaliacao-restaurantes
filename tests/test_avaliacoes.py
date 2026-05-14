@@ -17,9 +17,7 @@ def _dados_avaliacao() -> dict:
 
 
 def test_nova_avaliacao_requer_login(client, restaurante):
-    resp = client.get(
-        f"/avaliacoes/nova/{restaurante.id}", follow_redirects=True
-    )
+    resp = client.get(f"/avaliacoes/nova/{restaurante.id}", follow_redirects=True)
     assert resp.status_code == 200
     assert b"login" in resp.data.lower()
 
@@ -55,9 +53,7 @@ def test_editar_avaliacao_propria(cliente_logado, restaurante, avaliacao):
 
 def test_excluir_avaliacao_propria(cliente_logado, restaurante, avaliacao):
     av_id = avaliacao.id
-    resp = cliente_logado.post(
-        f"/avaliacoes/{av_id}/excluir", follow_redirects=True
-    )
+    resp = cliente_logado.post(f"/avaliacoes/{av_id}/excluir", follow_redirects=True)
     assert resp.status_code == 200
     assert db.session.get(Avaliacao, av_id) is None
 

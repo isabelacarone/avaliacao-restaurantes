@@ -42,7 +42,10 @@ def test_usuario_repr(app_ctx):
 
 def test_media_geral_sem_avaliacoes(app_ctx):
     r = Restaurante(
-        nome="Sem Avaliação", categoria="italiana", faixa_preco="moderado", endereco="Rua A, 1"
+        nome="Sem Avaliação",
+        categoria="italiana",
+        faixa_preco="moderado",
+        endereco="Rua A, 1",
     )
     db.session.add(r)
     db.session.commit()
@@ -260,7 +263,9 @@ def test_unique_email_bloqueia_email_de_outro_usuario(app_ctx, usuario):
         validator(None, FakeField())
 
 
-def test_unique_nome_restaurante_permite_proprio_nome_com_exclude_id(app_ctx, restaurante):
+def test_unique_nome_restaurante_permite_proprio_nome_com_exclude_id(
+    app_ctx, restaurante
+):
     """UniqueNomeRestaurante com exclude_id deve permitir o nome do próprio restaurante."""
     from app.validators import UniqueNomeRestaurante
 

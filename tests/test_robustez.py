@@ -248,13 +248,21 @@ def test_detalhe_ordenacao_melhor(cliente_logado, restaurante, usuario):
     db.session.flush()
 
     av1 = Avaliacao(
-        usuario_id=usuario.id, restaurante_id=restaurante.id,
-        nota_atendimento=5, nota_ambiente=5, nota_prato=5, nota_preco=5,
+        usuario_id=usuario.id,
+        restaurante_id=restaurante.id,
+        nota_atendimento=5,
+        nota_ambiente=5,
+        nota_prato=5,
+        nota_preco=5,
     )
     av1.calcular_media()
     av2 = Avaliacao(
-        usuario_id=outro.id, restaurante_id=restaurante.id,
-        nota_atendimento=1, nota_ambiente=1, nota_prato=1, nota_preco=1,
+        usuario_id=outro.id,
+        restaurante_id=restaurante.id,
+        nota_atendimento=1,
+        nota_ambiente=1,
+        nota_prato=1,
+        nota_preco=1,
     )
     av2.calcular_media()
     db.session.add_all([av1, av2])
@@ -277,9 +285,12 @@ def test_adicionar_favorito(cliente_logado, restaurante, usuario):
         f"/favoritos/{restaurante.id}/adicionar", follow_redirects=True
     )
     assert resp.status_code == 200
-    assert Favorito.query.filter_by(
-        usuario_id=usuario.id, restaurante_id=restaurante.id
-    ).first() is not None
+    assert (
+        Favorito.query.filter_by(
+            usuario_id=usuario.id, restaurante_id=restaurante.id
+        ).first()
+        is not None
+    )
 
 
 def test_remover_favorito(cliente_logado, restaurante, usuario):
@@ -291,9 +302,12 @@ def test_remover_favorito(cliente_logado, restaurante, usuario):
         f"/favoritos/{restaurante.id}/remover", follow_redirects=True
     )
     assert resp.status_code == 200
-    assert Favorito.query.filter_by(
-        usuario_id=usuario.id, restaurante_id=restaurante.id
-    ).first() is None
+    assert (
+        Favorito.query.filter_by(
+            usuario_id=usuario.id, restaurante_id=restaurante.id
+        ).first()
+        is None
+    )
 
 
 def test_listar_favoritos(cliente_logado, restaurante, usuario):

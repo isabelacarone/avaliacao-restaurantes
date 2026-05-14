@@ -61,7 +61,12 @@ def test_novo_restaurante_campo_vazio_rejeitado(cliente_logado):
     """Campos obrigatórios vazios devem impedir criação de restaurante."""
     resp = cliente_logado.post(
         "/restaurantes/novo",
-        data={"nome": "", "categoria": "italiana", "faixa_preco": "moderado", "endereco": ""},
+        data={
+            "nome": "",
+            "categoria": "italiana",
+            "faixa_preco": "moderado",
+            "endereco": "",
+        },
         follow_redirects=True,
     )
     assert resp.status_code == 200
@@ -145,7 +150,12 @@ def test_novo_restaurante_sem_endereco_rejeitado(cliente_logado):
     """Envio sem endereço não deve criar restaurante."""
     resp = cliente_logado.post(
         "/restaurantes/novo",
-        data={"nome": "Sem Endereco", "categoria": "italiana", "faixa_preco": "moderado", "endereco": ""},
+        data={
+            "nome": "Sem Endereco",
+            "categoria": "italiana",
+            "faixa_preco": "moderado",
+            "endereco": "",
+        },
         follow_redirects=True,
     )
     assert resp.status_code == 200
