@@ -389,6 +389,172 @@ uv run pytest tests/ --cov=app --cov-report=term-missing
 
 ---
 
+---
+
+## Sprint 7
+
+### 24. Suite de Testes Ampliada — 61 testes, cobertura 92%
+
+**Arquivos modificados/criados:**
+
+| Arquivo | Alteração |
+|---|---|
+| `tests/test_models.py` | Criado do zero — testes unitários dos modelos |
+| `tests/test_auth.py` | +5 testes: e-mail inexistente, senhas divergem, contagem de avaliações no perfil, normalização de e-mail |
+| `tests/test_restaurantes.py` | +11 testes: ordenações (`nota`, `avaliacoes`, `recentes`), filtro por `faixa_preco`, filtros combinados, detalhe com avaliação, nota média |
+| `tests/test_avaliacoes.py` | +6 testes: 404 para editar/excluir inexistente, 403 para excluir alheio, recálculo de média, GET do formulário, comentário opcional |
+
+**`test_models.py` — 16 testes novos:**
+
+| Grupo | Casos |
+|---|---|
+| `Usuario` | `set_senha` gera hash, `check_senha` correto/errado, `__repr__` |
+| `Restaurante.media_geral` | sem avaliações → `None`, uma avaliação, múltiplas avaliações |
+| `Restaurante.total_avaliacoes` | zero, incremento após inserção |
+| `Restaurante.__repr__` | exibe nome e categoria |
+| `Avaliacao.calcular_media` | valores iguais, mistos, extremos (1+5) |
+| `Avaliacao.__repr__` | exibe `restaurante_id` e `media` |
+| Integridade | cascade delete de `Usuario` remove avaliações; `criado_em` preenchido automaticamente |
+
+**Linhas não cobertas (8%)**
+
+| Módulo | Linhas | Motivo |
+|---|---|---|
+| `app/__init__.py` | 62–64 | Handler 413 exige envio de arquivo > 2 MB em teste |
+| `app/avaliacoes/routes.py` | 24–25, 39–46, 57–59, 137–138, 153–159 | Upload real de arquivo (validação de extensão, save/delete em disco, substituição de foto) |
+| `app/models.py` | 177 | `user_loader_callback` — chamado internamente pelo Flask-Login |
+| `app/validators.py` | 43, 80 | Branch `exclude_id` (reservado para edição de perfil/restaurante) |
+
+---
+
+### 25. Seed Expandido — 8 usuários, 20 restaurantes, 54+ avaliações
+
+**Arquivo modificado:** `seed.py`
+
+| Item | Antes | Depois |
+|---|---|---|
+| Usuários | 4 | 8 |
+| Restaurantes | 10 | 20 |
+| Avaliações | 23 | 54+ |
+| Categorias | italiana, japonesa, brasileira, mexicana, americana, francesa, vegana, frutos_do_mar, árabe | Todas anteriores + mais representantes por categoria |
+
+**Novos restaurantes adicionados:**
+
+| Restaurante | Categoria | Faixa |
+|---|---|---|
+| Trattoria Bella Napoli | italiana | sofisticado |
+| Ramen do Mestre | japonesa | moderado |
+| Taco Loco | mexicana | moderado |
+| Texas BBQ House | americana | moderado |
+| Brasserie Du Soleil | francesa | moderado |
+| Green Kitchen | vegana | economico |
+| Osteria Porto Fino | frutos_do_mar | moderado |
+| Al Fanar | árabe | moderado |
+| Boteco do Zé | brasileira | economico |
+| Empório da Massa | italiana | economico |
+
+**Novos usuários:** Elena Costa, Fábio Rocha, Gabriela Nunes, Henrique Alves (senha: `senha123`)
+
+---
+
+---
+
+## Sprint 8
+
+### 26. Filtro por Nota Mínima na Listagem de Restaurantes
+
+**Arquivos modificados:**
+
+| Arquivo | Alteração |
+|---|---|
+| `app/restaurantes/routes.py` | Parâmetro `nota_min` (float) adicionado à rota `GET /`; filtra `media_col >= nota_min` na subquery |
+| `app/templates/restaurantes/listar.html` | Select "Nota mín." no formulário de busca; `nota_min` preservado em todos os links de paginação e filter-tags |
+
+**Parâmetro adicionado a `GET /`:**
+
+| Parâmetro | Tipo | Padrão | Descrição |
+|---|---|---|---|
+| `nota_min` | float | — | Filtra restaurantes com média ≥ ao valor informado (1–5) |
+
+**Combinações suportadas:** `?nota_min=4&categoria=italiana&order=nota`
+
+---
+
+### 27. Edição de Perfil do Usuário (`GET/POST /perfil/editar`)
+
+**Arquivos modificados/criados:**
+
+| Arquivo | Alteração |
+|---|---|
+| `app/forms.py` | Nova classe `EditarPerfilForm` (nome, e-mail, senha_atual, nova_senha, confirmar_nova_senha); importa `Optional` do WTForms |
+| `app/auth/routes.py` | Nova rota `GET/POST /perfil/editar`; importa `EditarPerfilForm`; verifica senha atual antes de salvar; checa unicidade de e-mail na rota |
+| `app/templates/auth/editar_perfil.html` | Template criado com validação client-side via `data-v` |
+| `app/templates/auth/perfil.html` | Botão "Editar perfil" adicionado |
+
+**Comportamento:**
+- Formulário pré-preenchido com nome e e-mail atuais
+- Senha atual obrigatória para confirmar qualquer alteração
+- Nova senha opcional (mínimo 6 caracteres, com confirmação via `EqualTo`)
+- E-mail único: verifica no banco excluindo o próprio usuário (`Usuario.id != current_user.id`)
+- Sucesso: flash `success` + redirect para `/perfil`
+
+---
+
+### 28. Cobertura de Upload e Handler 413 com BytesIO
+
+**Arquivos modificados:**
+
+| Arquivo | Alteração |
+|---|---|
+| `tests/test_avaliacoes.py` | +4 testes com `io.BytesIO`: foto válida (JPEG), extensão inválida (PDF), edição com troca de foto, arquivo > 2 MB |
+
+**Técnica:** `content_type="multipart/form-data"` com tupla `(BytesIO, filename, mimetype)` no test client.
+
+---
+
+### 29. Cobertura de Validators — Branch `exclude_id`
+
+**Arquivo modificado:** `tests/test_models.py`
+
++4 testes unitários chamando os validators diretamente com `FakeField`:
+
+| Teste | Validador | Resultado esperado |
+|---|---|---|
+| `test_unique_email_permite_proprio_email_com_exclude_id` | `UniqueEmail(exclude_id=id)` | Não levanta `ValidationError` |
+| `test_unique_email_bloqueia_email_de_outro_usuario` | `UniqueEmail(exclude_id=outro_id)` | Levanta `ValidationError` |
+| `test_unique_nome_restaurante_permite_proprio_nome_com_exclude_id` | `UniqueNomeRestaurante(exclude_id=id)` | Não levanta `ValidationError` |
+| `test_unique_nome_restaurante_bloqueia_nome_de_outro` | `UniqueNomeRestaurante(exclude_id=outro_id)` | Levanta `ValidationError` |
+
+---
+
+### 30. Suite de Testes Atualizada — 82 testes, cobertura 97%
+
+**Total de testes por arquivo:**
+
+| Arquivo | Testes |
+|---|---|
+| `tests/test_auth.py` | 22 (13 anteriores + 9 novos: editar perfil) |
+| `tests/test_avaliacoes.py` | 19 (15 anteriores + 4 novos: upload BytesIO) |
+| `tests/test_models.py` | 20 (16 anteriores + 4 novos: validators) |
+| `tests/test_restaurantes.py` | 21 (17 anteriores + 4 novos: nota_min) |
+
+**Cobertura por módulo:**
+
+| Módulo | Sprint 7 | Sprint 8 |
+|---|---|---|
+| `app/__init__.py` | 91% | **100%** |
+| `app/auth/routes.py` | 100% | **100%** |
+| `app/avaliacoes/routes.py` | 77% | **89%** |
+| `app/forms.py` | 100% | **100%** |
+| `app/models.py` | 98% | 98% |
+| `app/restaurantes/routes.py` | 100% | **100%** |
+| `app/validators.py` | 91% | **100%** |
+| **TOTAL** | **92%** | **97%** |
+
+Linha remanescente não coberta: `app/models.py:177` (`user_loader_callback` — retorno interno do Flask-Login, acionado por qualquer requisição autenticada mas não rastreado pelo pytest-cov).
+
+---
+
 ## Resumo de dependências adicionadas
 
 | Pacote | Versão | Motivo |
