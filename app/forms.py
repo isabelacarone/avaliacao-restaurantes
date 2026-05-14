@@ -11,7 +11,7 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional
 
-from app.validators import UniqueEmail, UniqueNomeRestaurante
+from app.validators import SenhaForte, UniqueEmail, UniqueNomeRestaurante
 
 CATEGORIAS: list[tuple[str, str]] = [
     ("brasileira", "Brasileira"),
@@ -82,7 +82,7 @@ class CadastroForm(FlaskForm):
         "Senha",
         validators=[
             DataRequired(message="A senha é obrigatória."),
-            Length(min=6, message="A senha deve ter no mínimo 6 caracteres."),
+            SenhaForte(),
         ],
     )
     confirmar_senha = PasswordField(
@@ -155,7 +155,7 @@ class EditarPerfilForm(FlaskForm):
         "Nova senha (deixe em branco para manter a atual)",
         validators=[
             Optional(),
-            Length(min=6, message="A nova senha deve ter no mínimo 6 caracteres."),
+            SenhaForte(),
         ],
     )
     confirmar_nova_senha = PasswordField(

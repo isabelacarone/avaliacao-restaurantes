@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Meus Favoritos — Mesa Certa{% endblock %}
+{% block content %}
+<div style="background:#fff;border-bottom:0.5px solid #e5e5e5;padding:.875rem 1.5rem;">
+    <a href="{{ url_for('restaurantes.listar') }}" style="font-size:13px;color:#666;text-decoration:none;">← Restaurantes</a>
+</div>
+
+<div class="container-fluid px-4 py-4" style="max-width:760px;">
+    <h3 style="font-size:15px;font-weight:500;color:#1a1a1a;margin-bottom:1.25rem;">Meus favoritos</h3>
+
+    {% if favoritos %}
+        {% for fav in favoritos %}
+        {% set r = fav.restaurante %}
+        <div style="border:0.5px solid #e5e5e5;border-radius:10px;padding:.875rem;margin-bottom:.75rem;background:#fff;">
+            <div class="d-flex align-items-start justify-content-between gap-2">
+                <div>
+                    <a href="{{ url_for('restaurantes.detalhe', restaurante_id=r.id) }}"
+                       style="font-size:13px;font-weight:500;color:#1a1a1a;text-decoration:none;">
+                        {{ r.nome }}
+                    </a>
+                    <div style="font-size:11px;color:#888;margin-top:2px;">
+                        {{ r.categoria | capitalize }} · {{ r.endereco }}
+                    </div>
+                </div>
+                <form method="POST" action="{{ url_for('favoritos.remover', restaurante_id=r.id) }}" style="margin:0;">
+                    {{ form_csrf.hidden_tag() if form_csrf else '' }}
+                    <button type="submit"
+                            style="background:none;border:none;cursor:pointer;font-size:18px;color:#dc3545;"
+                            title="Remover dos favoritos">♥</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="text-center py-5">
+            <div style="font-size:36px;margin-bottom:.5rem;">🤍</div>
+            <p style="font-size:13px;color:#888;">Você ainda não tem favoritos.</p>
+            <a href="{{ url_for('restaurantes.listar') }}"
+               class="btn btn-sm mt-1" style="background:#D85A30;color:#fff;border-radius:8px;font-size:12px;">
+                Explorar restaurantes
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

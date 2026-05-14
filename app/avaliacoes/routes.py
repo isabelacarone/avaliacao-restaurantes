@@ -11,6 +11,21 @@ from app.avaliacoes import avaliacoes_bp
 from app.forms import AvaliacaoForm
 from app.models import Avaliacao, Restaurante
 
+_MAGIC_BYTES: dict[str, bytes] = {
+    "jpg": b"\xff\xd8\xff",
+    "jpeg": b"\xff\xd8\xff",
+    "png": b"\x89PNG",
+    "gif": b"GIF8",
+}
+
+
+def _conteudo_valido(arquivo, extensao: str) -> bool:  # noqa: ANN001
+    """Verifica os primeiros bytes do arquivo contra a assinatura esperada."""
+    cabecalho = arquivo.read(8)
+    arquivo.seek(0)
+    assinatura = _MAGIC_BYTES.get(extensao, b"")
+    return cabecalho.startswith(assinatura)
+
 
 def _extensao_valida(nome_arquivo: str) -> bool:
     """Verifica se a extensão do arquivo está na lista de permitidas.
@@ -39,6 +54,8 @@ def _salvar_foto(arquivo: object) -> str | None:
     if not _extensao_valida(arquivo.filename):
         return None
     extensao = arquivo.filename.rsplit(".", 1)[1].lower()
+    if not _conteudo_valido(arquivo, extensao):
+        return None
     nome_arquivo = f"{uuid.uuid4().hex}.{extensao}"
     pasta = current_app.config["UPLOAD_FOLDER"]
     os.makedirs(pasta, exist_ok=True)
@@ -79,9 +96,7 @@ def nova(restaurante_id: int) -> str:
     ).first()
     if ja_avaliou:
         flash("Você já avaliou este restaurante.", "warning")
-        return redirect(
-            url_for("restaurantes.detalhe", restaurante_id=restaurante_id)
-        )
+        return redirect(url_for("restaurantes.detalhe", restaurante_id=restaurante_id))
 
     form = AvaliacaoForm()
     if form.validate_on_submit():
@@ -99,9 +114,7 @@ def nova(restaurante_id: int) -> str:
         db.session.add(avaliacao)
         db.session.commit()
         flash("Avaliação registrada com sucesso!", "success")
-        return redirect(
-            url_for("restaurantes.detalhe", restaurante_id=restaurante_id)
-        )
+        return redirect(url_for("restaurantes.detalhe", restaurante_id=restaurante_id))
 
     return render_template(
         "avaliacoes/nova.html",

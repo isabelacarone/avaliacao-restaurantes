@@ -109,6 +109,10 @@
                            href="{{ url_for('auth.perfil') }}">Meu perfil</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'favoritos.listar' %}active{% endif %}"
+                           href="{{ url_for('favoritos.listar') }}">♥ Favoritos</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="btn-avaliar btn" href="{{ url_for('restaurantes.novo') }}">Avaliar</a>
                     </li>
                     <li class="nav-item dropdown">
@@ -152,7 +156,7 @@
 </main>
 
 <footer class="text-center py-4 mt-5" style="font-size:11px;color:#999;border-top:0.5px solid #e5e5e5;">
-    &copy; 2025 Mesa Certa — Isabela Carone, Isabela Campagnollo e João Antônio
+    &copy; 2025 Mesa Certa
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

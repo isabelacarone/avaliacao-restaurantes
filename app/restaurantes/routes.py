@@ -1,13 +1,13 @@
 """Rotas de restaurantes: listagem, detalhe e cadastro."""
 
 from flask import abort, flash, redirect, render_template, request, url_for
-from flask_login import login_required
+from flask_login import current_user, login_required
 from flask_wtf import FlaskForm
 from sqlalchemy import func
 
 from app import db
 from app.forms import RestauranteForm
-from app.models import Avaliacao, Restaurante
+from app.models import Avaliacao, Favorito, Restaurante
 from app.restaurantes import restaurantes_bp
 
 _ORDENS_VALIDAS: dict[str, object] = {}
@@ -50,11 +50,18 @@ def listar() -> str:
     media_col = metricas_subquery.c.media_geral
     total_col = func.coalesce(metricas_subquery.c.total_avaliacoes, 0)
 
-    query = db.session.query(
-        Restaurante,
-        media_col,
-        total_col.label("total_avaliacoes"),
-    ).outerjoin(metricas_subquery, metricas_subquery.c.restaurante_id == Restaurante.id)
+    query = (
+        db.session.query(
+            Restaurante,
+            media_col,
+            total_col.label("total_avaliacoes"),
+        )
+        .outerjoin(
+            metricas_subquery,
+            metricas_subquery.c.restaurante_id == Restaurante.id,
+        )
+        .filter(Restaurante.deletado_em.is_(None))
+    )
 
     termo = request.args.get("q", "").strip()
     categoria = request.args.get("categoria", "").strip()
@@ -98,7 +105,7 @@ def detalhe(restaurante_id: int) -> str:
         Renderização do template de detalhe ou erro 404.
     """
     restaurante = db.session.get(Restaurante, restaurante_id)
-    if not restaurante:
+    if not restaurante or restaurante.deletado_em:
         abort(404)
 
     todas = restaurante.avaliacoes.order_by(Avaliacao.criado_em.desc()).all()
@@ -106,9 +113,25 @@ def detalhe(restaurante_id: int) -> str:
     media_geral = round(sum(medias) / len(medias), 1) if medias else None
 
     page = request.args.get("page", 1, type=int)
-    paginacao = restaurante.avaliacoes.order_by(Avaliacao.criado_em.desc()).paginate(
-        page=page, per_page=8, error_out=False
-    )
+    ordem = request.args.get("ordem", "recentes")
+    if ordem == "melhor":
+        q_av = restaurante.avaliacoes.order_by(Avaliacao.media_calculada.desc())
+    elif ordem == "pior":
+        q_av = restaurante.avaliacoes.order_by(Avaliacao.media_calculada.asc())
+    else:
+        q_av = restaurante.avaliacoes.order_by(Avaliacao.criado_em.desc())
+
+    paginacao = q_av.paginate(page=page, per_page=8, error_out=False)
+
+    eh_favorito = False
+    if current_user.is_authenticated:
+        eh_favorito = (
+            Favorito.query.filter_by(
+                usuario_id=current_user.id, restaurante_id=restaurante_id
+            ).first()
+            is not None
+        )
+
     return render_template(
         "restaurantes/detalhe.html",
         restaurante=restaurante,
@@ -118,6 +141,8 @@ def detalhe(restaurante_id: int) -> str:
         media_geral=media_geral,
         total_avaliacoes=len(todas),
         form_csrf=FlaskForm(),
+        ordem=ordem,
+        eh_favorito=eh_favorito,
     )
 
 

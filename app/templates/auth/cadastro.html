@@ -33,10 +33,14 @@
 
             <div class="mb-3">
                 <label class="form-label-sm">Senha</label>
-                {{ form.senha(class='form-control', placeholder='Mínimo 6 caracteres',
-                   style='height:34px;font-size:13px;' + (' border-color:#dc3545;' if form.senha.errors else ''),
-                   id='senha',
-                   **{'data-v': 'required', 'data-v-label': 'Senha', 'data-v-min': '6'}) }}
+                <div style="position:relative;">
+                    {{ form.senha(class='form-control', placeholder='Mín. 8 caracteres, letras e números',
+                       style='height:34px;font-size:13px;padding-right:36px;' + (' border-color:#dc3545;' if form.senha.errors else ''),
+                       id='senha',
+                       **{'data-v': 'required', 'data-v-label': 'Senha', 'data-v-min': '8'}) }}
+                    <button type="button" onclick="toggleSenha('senha', this)"
+                            style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:14px;color:#888;">👁</button>
+                </div>
                 {% for erro in form.senha.errors %}
                     <div style="font-size:11px;color:#dc3545;margin-top:3px;">{{ erro }}</div>
                 {% endfor %}
@@ -44,9 +48,14 @@
 
             <div class="mb-4">
                 <label class="form-label-sm">Confirmar senha</label>
-                {{ form.confirmar_senha(class='form-control', placeholder='Repita a senha',
-                   style='height:34px;font-size:13px;' + (' border-color:#dc3545;' if form.confirmar_senha.errors else ''),
-                   **{'data-v': 'required confirm', 'data-v-label': 'Confirmação', 'data-v-confirm': 'senha'}) }}
+                <div style="position:relative;">
+                    {{ form.confirmar_senha(class='form-control', placeholder='Repita a senha',
+                       style='height:34px;font-size:13px;padding-right:36px;' + (' border-color:#dc3545;' if form.confirmar_senha.errors else ''),
+                       id='confirmar-senha',
+                       **{'data-v': 'required confirm', 'data-v-label': 'Confirmação', 'data-v-confirm': 'senha'}) }}
+                    <button type="button" onclick="toggleSenha('confirmar-senha', this)"
+                            style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:14px;color:#888;">👁</button>
+                </div>
                 {% for erro in form.confirmar_senha.errors %}
                     <div style="font-size:11px;color:#dc3545;margin-top:3px;">{{ erro }}</div>
                 {% endfor %}
@@ -71,5 +80,11 @@
 {% block scripts %}
 <script>
     Validacao.init('form-cadastro');
+    function toggleSenha(id, btn) {
+        const input = document.getElementById(id);
+        const mostrar = input.type === 'password';
+        input.type = mostrar ? 'text' : 'password';
+        btn.textContent = mostrar ? '🙈' : '👁';
+    }
 </script>
 {% endblock %}

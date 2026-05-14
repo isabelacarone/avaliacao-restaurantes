@@ -1,20 +1,12 @@
-"""Validadores customizados WTForms para a aplicação Mesa Certa.
+"""Validadores customizados WTForms para a aplicação Mesa Certa."""
 
-Implementa checagens de unicidade (e-mail, nome de restaurante) que
-exigem acesso ao banco de dados e não são cobertas pelos validadores
-padrão do WTForms.
-"""
+import re
 
 from wtforms.validators import ValidationError
 
 
 class UniqueEmail:
-    """Valida que o e-mail não está cadastrado para outro usuário.
-
-    Args:
-        exclude_id: ID do usuário a ignorar (uso em edição de perfil).
-        message: Mensagem de erro personalizada.
-    """
+    """Valida que o e-mail não está cadastrado para outro usuário."""
 
     def __init__(
         self,
@@ -25,20 +17,9 @@ class UniqueEmail:
         self.message = message
 
     def __call__(self, form, field) -> None:  # noqa: ANN001
-        """Executa a validação consultando o banco de dados.
-
-        Args:
-            form: Instância do formulário WTForms.
-            field: Campo que está sendo validado.
-
-        Raises:
-            ValidationError: Se o e-mail já existir para outro usuário.
-        """
         from app.models import Usuario
 
-        query = Usuario.query.filter(
-            Usuario.email == field.data.strip().lower()
-        )
+        query = Usuario.query.filter(Usuario.email == field.data.strip().lower())
         if self.exclude_id is not None:
             query = query.filter(Usuario.id != self.exclude_id)
         if query.first():
@@ -46,12 +27,7 @@ class UniqueEmail:
 
 
 class UniqueNomeRestaurante:
-    """Valida que o nome do restaurante ainda não foi cadastrado.
-
-    Args:
-        exclude_id: ID do restaurante a ignorar (uso em edição futura).
-        message: Mensagem de erro personalizada.
-    """
+    """Valida que o nome do restaurante ainda não foi cadastrado."""
 
     def __init__(
         self,
@@ -62,21 +38,23 @@ class UniqueNomeRestaurante:
         self.message = message
 
     def __call__(self, form, field) -> None:  # noqa: ANN001
-        """Executa a validação consultando o banco de dados.
-
-        Args:
-            form: Instância do formulário WTForms.
-            field: Campo que está sendo validado.
-
-        Raises:
-            ValidationError: Se o nome já existir para outro restaurante.
-        """
         from app.models import Restaurante
 
-        query = Restaurante.query.filter(
-            Restaurante.nome.ilike(field.data.strip())
-        )
+        query = Restaurante.query.filter(Restaurante.nome.ilike(field.data.strip()))
         if self.exclude_id is not None:
             query = query.filter(Restaurante.id != self.exclude_id)
         if query.first():
             raise ValidationError(self.message)
+
+
+class SenhaForte:
+    """Valida que a senha tem no mínimo 8 caracteres e contém letras e números."""
+
+    def __call__(self, form, field) -> None:  # noqa: ANN001
+        v = field.data or ""
+        if not v:
+            return
+        if len(v) < 8:
+            raise ValidationError("A senha deve ter no mínimo 8 caracteres.")
+        if not re.search(r"[A-Za-z]", v) or not re.search(r"\d", v):
+            raise ValidationError("A senha deve conter letras e números.")
