@@ -1,6 +1,7 @@
 "Run da aplicação"
 
 import os
+
 from dotenv import load_dotenv
 
 from app import create_app
