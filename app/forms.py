@@ -9,7 +9,9 @@ from wtforms import (
     StringField,
     TextAreaField,
 )
-from wtforms.validators import DataRequired, Email, EqualTo, Length
+from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional
+
+from app.validators import SenhaForte, UniqueEmail, UniqueNomeRestaurante
 
 CATEGORIAS: list[tuple[str, str]] = [
     ("brasileira", "Brasileira"),
@@ -73,13 +75,14 @@ class CadastroForm(FlaskForm):
         validators=[
             DataRequired(message="O e-mail é obrigatório."),
             Email(message="Informe um e-mail válido."),
+            UniqueEmail(),
         ],
     )
     senha = PasswordField(
         "Senha",
         validators=[
             DataRequired(message="A senha é obrigatória."),
-            Length(min=6, message="A senha deve ter no mínimo 6 caracteres."),
+            SenhaForte(),
         ],
     )
     confirmar_senha = PasswordField(
@@ -99,6 +102,7 @@ class RestauranteForm(FlaskForm):
         validators=[
             DataRequired(message="O nome é obrigatório."),
             Length(max=120, message="O nome deve ter no máximo 120 caracteres."),
+            UniqueNomeRestaurante(),
         ],
     )
     categoria = SelectField(
@@ -123,6 +127,40 @@ class RestauranteForm(FlaskForm):
         validators=[
             Length(max=500, message="A descrição deve ter no máximo 500 caracteres.")
         ],
+    )
+
+
+class EditarPerfilForm(FlaskForm):
+    """Formulário de edição do perfil do usuário autenticado."""
+
+    nome = StringField(
+        "Nome completo",
+        validators=[
+            DataRequired(message="O nome é obrigatório."),
+            Length(min=3, max=120, message="O nome deve ter entre 3 e 120 caracteres."),
+        ],
+    )
+    email = EmailField(
+        "E-mail",
+        validators=[
+            DataRequired(message="O e-mail é obrigatório."),
+            Email(message="Informe um e-mail válido."),
+        ],
+    )
+    senha_atual = PasswordField(
+        "Senha atual",
+        validators=[DataRequired(message="Informe sua senha atual para confirmar.")],
+    )
+    nova_senha = PasswordField(
+        "Nova senha (deixe em branco para manter a atual)",
+        validators=[
+            Optional(),
+            SenhaForte(),
+        ],
+    )
+    confirmar_nova_senha = PasswordField(
+        "Confirmar nova senha",
+        validators=[EqualTo("nova_senha", message="As senhas não coincidem.")],
     )
 
 

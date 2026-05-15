@@ -9,22 +9,44 @@ ALLOWED_EXTENSIONS: set[str] = {"png", "jpg", "jpeg", "gif"}
 
 
 class Config:
-    """Configurações base da aplicação.
+    """Configurações base — herdada por todas as outras."""
 
-    Attributes:
-        SECRET_KEY: Chave secreta para sessões e CSRF. Deve ser trocada em produção.
-        SQLALCHEMY_DATABASE_URI: URI de conexão com o banco de dados SQLite.
-        SQLALCHEMY_TRACK_MODIFICATIONS: Desabilita rastreamento de modificações.
-        UPLOAD_FOLDER: Caminho para salvar arquivos enviados pelos usuários.
-        MAX_CONTENT_LENGTH: Tamanho máximo permitido para upload (2 MB).
-        ALLOWED_EXTENSIONS: Extensões de imagem permitidas para upload.
-    """
-
-    SECRET_KEY: str = os.environ.get("SECRET_KEY", "dev-secret-key-troque-em-producao")
-    SQLALCHEMY_DATABASE_URI: str = os.environ.get(
-        "DATABASE_URL", "sqlite:///mesa_certa.db"
-    )
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
     UPLOAD_FOLDER: str = UPLOAD_FOLDER
     MAX_CONTENT_LENGTH: int = MAX_CONTENT_LENGTH
     ALLOWED_EXTENSIONS: set[str] = ALLOWED_EXTENSIONS
+    SECRET_KEY: str = os.environ.get("SECRET_KEY", "dev-secret-key-troque-em-producao")
+    SQLALCHEMY_DATABASE_URI: str = os.environ.get(
+        "DATABASE_URL", "sqlite:///mesa_certa.db"
+    )
+
+
+class DevelopmentConfig(Config):
+    DEBUG: bool = True
+    SECRET_KEY: str = os.environ.get("SECRET_KEY", "dev-only-insegura")
+
+
+class TestingConfig(Config):
+    TESTING: bool = True
+    WTF_CSRF_ENABLED: bool = False
+    SECRET_KEY: str = "test-secret"
+    RATELIMIT_ENABLED: bool = False
+
+
+class ProductionConfig(Config):
+    SECRET_KEY: str = os.environ.get("SECRET_KEY") or ""
+
+    def __init_subclass__(cls) -> None: ...
+
+
+_CONFIG_MAP: dict[str, type[Config]] = {
+    "development": DevelopmentConfig,
+    "testing": TestingConfig,
+    "production": ProductionConfig,
+}
+
+
+def get_config() -> type[Config]:
+    """Retorna a classe de configuração baseada em FLASK_ENV."""
+    env = os.environ.get("FLASK_ENV", "development")
+    return _CONFIG_MAP.get(env, DevelopmentConfig)

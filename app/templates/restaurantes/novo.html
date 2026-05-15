@@ -11,13 +11,14 @@
     <h3 style="font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:1.25rem;">Cadastrar Restaurante</h3>
 
     <div style="background:#fff;border:0.5px solid #e5e5e5;border-radius:12px;padding:1.5rem;">
-        <form method="POST" novalidate>
+        <form method="POST" novalidate id="form-restaurante">
             {{ form.hidden_tag() }}
 
             <div class="mb-3">
                 <label class="form-label-sm">Nome do restaurante</label>
                 {{ form.nome(class='form-control', placeholder='Ex.: La Bella Pizza',
-                   style='height:34px;font-size:13px;' + (' border-color:#dc3545;' if form.nome.errors else '')) }}
+                   style='height:34px;font-size:13px;' + (' border-color:#dc3545;' if form.nome.errors else ''),
+                   **{'data-v': 'required', 'data-v-label': 'Nome', 'data-v-max': '120'}) }}
                 {% for erro in form.nome.errors %}
                     <div style="font-size:11px;color:#dc3545;margin-top:3px;">{{ erro }}</div>
                 {% endfor %}
@@ -37,7 +38,8 @@
             <div class="mb-3">
                 <label class="form-label-sm">Endereço</label>
                 {{ form.endereco(class='form-control', placeholder='Rua, número, bairro, cidade',
-                   style='height:34px;font-size:13px;' + (' border-color:#dc3545;' if form.endereco.errors else '')) }}
+                   style='height:34px;font-size:13px;' + (' border-color:#dc3545;' if form.endereco.errors else ''),
+                   **{'data-v': 'required', 'data-v-label': 'Endereço', 'data-v-max': '200'}) }}
                 {% for erro in form.endereco.errors %}
                     <div style="font-size:11px;color:#dc3545;margin-top:3px;">{{ erro }}</div>
                 {% endfor %}
@@ -46,7 +48,11 @@
             <div class="mb-4">
                 <label class="form-label-sm">Descrição (opcional)</label>
                 {{ form.descricao(class='form-control', rows=3,
-                   placeholder='Descreva o restaurante...', style='font-size:13px;') }}
+                   placeholder='Descreva o restaurante...', style='font-size:13px;',
+                   **{'data-v-max': '500', 'data-v-label': 'Descrição'}) }}
+                {% for erro in form.descricao.errors %}
+                    <div style="font-size:11px;color:#dc3545;margin-top:3px;">{{ erro }}</div>
+                {% endfor %}
             </div>
 
             <button type="submit"
@@ -56,4 +62,10 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    Validacao.init('form-restaurante');
+</script>
 {% endblock %}

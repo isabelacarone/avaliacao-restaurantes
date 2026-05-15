@@ -22,8 +22,12 @@
 
             <div class="mb-4">
                 <label class="form-label-sm">Senha</label>
-                {{ form.senha(class='form-control', placeholder='••••••••',
-                   style='height:34px;font-size:13px;' + (' border-color:#dc3545;' if form.senha.errors else '')) }}
+                <div style="position:relative;">
+                    {{ form.senha(class='form-control', placeholder='••••••••', id='senha-login',
+                       style='height:34px;font-size:13px;padding-right:36px;' + (' border-color:#dc3545;' if form.senha.errors else '')) }}
+                    <button type="button" onclick="toggleSenha('senha-login', this)"
+                            style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:14px;color:#888;">👁</button>
+                </div>
                 {% for erro in form.senha.errors %}
                     <div style="font-size:11px;color:#dc3545;margin-top:3px;">{{ erro }}</div>
                 {% endfor %}
@@ -43,4 +47,15 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleSenha(id, btn) {
+    const input = document.getElementById(id);
+    const mostrar = input.type === 'password';
+    input.type = mostrar ? 'text' : 'password';
+    btn.textContent = mostrar ? '🙈' : '👁';
+}
+</script>
 {% endblock %}

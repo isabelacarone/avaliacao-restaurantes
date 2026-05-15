@@ -14,7 +14,7 @@ import tempfile
 import pytest
 
 from app import create_app, db
-from app.models import Avaliacao, Restaurante, Usuario
+from app.models import Avaliacao, Favorito, Restaurante, Usuario
 
 
 @pytest.fixture(scope="session")
@@ -33,6 +33,7 @@ def app():
             "WTF_CSRF_ENABLED": False,
             "SQLALCHEMY_DATABASE_URI": f"sqlite:///{db_path}",
             "SECRET_KEY": "test-secret",
+            "RATELIMIT_ENABLED": False,
         }
     )
 
@@ -58,6 +59,7 @@ def app_ctx(app):
 def limpar_banco(app_ctx):
     """Remove todos os dados antes de cada teste."""
     db.session.query(Avaliacao).delete()
+    db.session.query(Favorito).delete()
     db.session.query(Restaurante).delete()
     db.session.query(Usuario).delete()
     db.session.commit()

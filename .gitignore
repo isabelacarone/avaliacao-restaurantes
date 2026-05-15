@@ -1,10 +1,10 @@
 # Ambiente virtual
 .venv/
 
-# Variáveis de ambiente (nunca commitar segredos)
-# .env.example deve ser rastreado — é um template sem valores reais
+# Variáveis de ambiente — .env.example deve ser rastreado (template sem segredos)
 .env
 .env.*
+!.env.example
 
 # Cache Python
 **/__pycache__/
@@ -27,6 +27,12 @@ build/
 .ruff_cache/
 .pytest_cache/
 
+# Logs de produção
+logs/
+
 # Backups e arquivos temporários
 *.bak
 *_test.db
+
+# configs claude local
+.claude/ 

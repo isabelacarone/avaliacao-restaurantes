@@ -1,43 +1,100 @@
 """Pacote principal da aplicação Mesa Certa."""
 
-from flask import Flask
-from flask_login import LoginManager
-from flask_sqlalchemy import SQLAlchemy
+import logging
+import os
+from logging.handlers import RotatingFileHandler
 
-from app.config import Config
+from flask import Flask, flash, redirect, render_template, request, url_for
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_login import LoginManager
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+from flask_talisman import Talisman
+from werkzeug.exceptions import RequestEntityTooLarge
+
+from app.config import get_config
 
 db = SQLAlchemy()
 login_manager = LoginManager()
+migrate = Migrate()
+limiter = Limiter(key_func=get_remote_address, default_limits=["200 per day"])
+
+_CSP = {
+    "default-src": "'self'",
+    "style-src": ["'self'", "cdn.jsdelivr.net", "'unsafe-inline'"],
+    "script-src": ["'self'", "cdn.jsdelivr.net", "'unsafe-inline'"],
+    "img-src": ["'self'", "data:"],
+    "font-src": ["'self'", "cdn.jsdelivr.net"],
+}
 
 
-def create_app() -> Flask:
-    """Cria e configura a instância da aplicação Flask (Application Factory).
-
-    Returns:
-        Instância configurada da aplicação Flask.
-    """
+def create_app(test_config: dict | None = None) -> Flask:
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(get_config())
+
+    if test_config:
+        app.config.update(test_config)
 
     db.init_app(app)
+    migrate.init_app(app, db)
     login_manager.init_app(app)
+    limiter.init_app(app)
     login_manager.login_view = "auth.login"
     login_manager.login_message = "Faça login para acessar esta página."
     login_manager.login_message_category = "warning"
 
+    if not app.debug and not app.testing:
+        Talisman(app, force_https=False, content_security_policy=_CSP)
+        _configurar_logging(app)
+
     from app.auth import auth_bp
     from app.avaliacoes import avaliacoes_bp
+    from app.favoritos import favoritos_bp
     from app.restaurantes import restaurantes_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(restaurantes_bp)
     app.register_blueprint(avaliacoes_bp)
+    app.register_blueprint(favoritos_bp)
 
     from app.models import user_loader_callback
 
     login_manager.user_loader(user_loader_callback)
 
-    with app.app_context():
-        db.create_all()
+    @app.errorhandler(RequestEntityTooLarge)
+    def arquivo_muito_grande(e: RequestEntityTooLarge) -> tuple:
+        app.logger.warning("Upload rejeitado (>2 MB): %s", request.path)
+        flash("A foto deve ter no máximo 2 MB.", "danger")
+        destino = request.referrer or url_for("restaurantes.listar")
+        return redirect(destino), 302
+
+    @app.errorhandler(404)
+    def pagina_nao_encontrada(e):
+        return render_template("erros/404.html"), 404
+
+    @app.errorhandler(403)
+    def acesso_negado(e):
+        return render_template("erros/403.html"), 403
+
+    @app.errorhandler(500)
+    def erro_interno(e):
+        app.logger.error("Erro interno: %s", e)
+        return render_template("erros/500.html"), 500
 
     return app
+
+
+def _configurar_logging(app: Flask) -> None:
+    os.makedirs("logs", exist_ok=True)
+    handler = RotatingFileHandler(
+        "logs/mesa_certa.log", maxBytes=1_000_000, backupCount=3
+    )
+    handler.setLevel(logging.WARNING)
+    handler.setFormatter(
+        logging.Formatter(
+            "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"
+        )
+    )
+    app.logger.addHandler(handler)
+    app.logger.setLevel(logging.INFO)

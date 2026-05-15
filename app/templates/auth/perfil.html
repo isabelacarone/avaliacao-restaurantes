@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Meu Perfil — Mesa Certa{% endblock %}
+
+{% block content %}
+<div style="background:#fff;border-bottom:0.5px solid #e5e5e5;padding:1.5rem;">
+    <div class="container-fluid px-2" style="max-width:760px;">
+        <div class="d-flex align-items-center gap-3">
+            {% set nome_parts = current_user.nome.split() %}
+            <div class="avatar-inicial" style="width:48px;height:48px;font-size:16px;background:#FAECE7;color:#993C1D;">
+                {{ nome_parts[0][0].upper() }}{{ nome_parts[-1][0].upper() if nome_parts | length > 1 else '' }}
+            </div>
+            <div>
+                <div style="font-size:16px;font-weight:500;color:#1a1a1a;">{{ current_user.nome }}</div>
+                <div style="font-size:12px;color:#888;">{{ current_user.email }}</div>
+                <div style="font-size:11px;color:#aaa;margin-top:2px;">
+                    Membro desde {{ current_user.criado_em.strftime('%B de %Y') }}
+                    · {{ total_avaliacoes }} avaliação{{ '' if total_avaliacoes == 1 else 'ões' }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-4 py-4" style="max-width:760px;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <span style="font-size:13px;font-weight:500;color:#1a1a1a;">
+            Minhas avaliações
+            {% if paginacao.pages > 1 %}
+            <span style="font-weight:400;color:#aaa;">· página {{ paginacao.page }}/{{ paginacao.pages }}</span>
+            {% endif %}
+        </span>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('favoritos.listar') }}"
+               style="font-size:12px;color:#666;text-decoration:none;padding:4px 12px;border:0.5px solid #d5d5d5;border-radius:6px;">
+                ♥ Favoritos
+            </a>
+            <a href="{{ url_for('auth.editar_perfil') }}"
+               style="font-size:12px;color:#666;text-decoration:none;padding:4px 12px;border:0.5px solid #d5d5d5;border-radius:6px;">
+                Editar perfil
+            </a>
+        </div>
+    </div>
+
+    {% if avaliacoes or paginacao.total > 0 %}
+        {% for av in avaliacoes %}
+        {% set idx = loop.index0 % 5 %}
+        {% set bg_av = ['#FAECE7', '#E1F5EE', '#E6F1FB', '#FFF3DC', '#F0EAFF'][idx] %}
+        {% set fg_av = ['#993C1D', '#0F6E56', '#1B5FA8', '#7A5500', '#4B2E9B'][idx] %}
+        <div style="border:0.5px solid #e5e5e5;border-radius:10px;padding:.875rem;margin-bottom:.75rem;">
+            <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                <div>
+                    <a href="{{ url_for('restaurantes.detalhe', restaurante_id=av.restaurante_id) }}"
+                       style="font-size:13px;font-weight:500;color:#1a1a1a;text-decoration:none;">
+                        {{ av.restaurante.nome }}
+                    </a>
+                    <div style="font-size:11px;color:#888;margin-top:1px;">
+                        {{ av.restaurante.categoria | capitalize }}
+                    </div>
+                </div>
+                <div class="text-end">
+                    <div class="d-flex gap-1 justify-content-end">
+                        {% set nota_int = av.media_calculada | round | int %}
+                        {% for i in range(5) %}
+                            <span class="star-sq {% if i < nota_int %}on{% endif %}"></span>
+                        {% endfor %}
+                    </div>
+                    <div style="font-size:11px;color:#aaa;margin-top:2px;">
+                        {{ av.criado_em.strftime('%d/%m/%Y') }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3 mb-2" style="font-size:11px;color:#888;">
+                <span>Atendimento <strong style="color:#1a1a1a;">{{ av.nota_atendimento }}</strong></span>
+                <span>Ambiente <strong style="color:#1a1a1a;">{{ av.nota_ambiente }}</strong></span>
+                <span>Prato <strong style="color:#1a1a1a;">{{ av.nota_prato }}</strong></span>
+                <span>Preço <strong style="color:#1a1a1a;">{{ av.nota_preco }}</strong></span>
+            </div>
+
+            {% if av.comentario %}
+                <p style="font-size:12px;color:#555;line-height:1.5;margin-bottom:{% if av.foto_path %}.75rem{% else %}.5rem{% endif %};">
+                    {{ av.comentario }}
+                </p>
+            {% endif %}
+            {% if av.foto_path %}
+                <img src="{{ url_for('static', filename='uploads/' + av.foto_path) }}"
+                     alt="Foto da avaliação" class="rounded mb-2" style="max-height:140px;max-width:100%;">
+            {% endif %}
+
+            <div class="d-flex gap-2 mt-1">
+                <a href="{{ url_for('avaliacoes.editar', avaliacao_id=av.id) }}"
+                   style="font-size:11px;color:#666;text-decoration:none;padding:3px 10px;border:0.5px solid #d5d5d5;border-radius:6px;">
+                    Editar
+                </a>
+                <form method="POST" action="{{ url_for('avaliacoes.excluir', avaliacao_id=av.id) }}"
+                      id="excluir-{{ av.id }}" style="margin:0;">
+                    {{ form_csrf.hidden_tag() }}
+                    <button type="button"
+                            onclick="confirmarExclusao('excluir-{{ av.id }}', '{{ av.restaurante.nome | e }}', 'avaliação')"
+                            style="font-size:11px;color:#dc3545;background:transparent;border:0.5px solid #dc3545;border-radius:6px;padding:3px 10px;cursor:pointer;">
+                        Excluir
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+        {% if paginacao.pages > 1 %}
+        <nav class="d-flex justify-content-center mt-4" aria-label="Paginação do perfil">
+            <ul class="pagination pagination-sm mb-0" style="gap:4px;">
+                <li class="page-item {% if not paginacao.has_prev %}disabled{% endif %}">
+                    <a class="page-link" style="border-radius:8px;border:0.5px solid #d5d5d5;font-size:12px;color:#666;"
+                       href="{{ url_for('auth.perfil', page=paginacao.prev_num) }}">‹</a>
+                </li>
+                {% for p in paginacao.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if p %}
+                        <li class="page-item {% if p == paginacao.page %}active{% endif %}">
+                            <a class="page-link"
+                               style="border-radius:8px;border:0.5px solid {% if p == paginacao.page %}#D85A30{% else %}#d5d5d5{% endif %};font-size:12px;{% if p == paginacao.page %}background:#D85A30;color:#fff;{% else %}color:#666;{% endif %}"
+                               href="{{ url_for('auth.perfil', page=p) }}">{{ p }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link" style="border-radius:8px;border:0.5px solid #e5e5e5;font-size:12px;color:#aaa;">…</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not paginacao.has_next %}disabled{% endif %}">
+                    <a class="page-link" style="border-radius:8px;border:0.5px solid #d5d5d5;font-size:12px;color:#666;"
+                       href="{{ url_for('auth.perfil', page=paginacao.next_num) }}">›</a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-5">
+            <div style="font-size:36px;margin-bottom:.5rem;">✍️</div>
+            <p style="font-size:13px;color:#888;">Você ainda não fez nenhuma avaliação.</p>
+            <a href="{{ url_for('restaurantes.listar') }}"
+               class="btn btn-sm mt-1" style="background:#D85A30;color:#fff;border-radius:8px;font-size:12px;">
+                Explorar restaurantes
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}{% endblock %}
