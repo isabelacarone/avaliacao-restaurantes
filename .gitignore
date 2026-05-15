@@ -23,6 +23,9 @@ dist/
 build/
 *.egg-info/
 
+# Relatório HTML do coverage
+htmlcov/
+
 # Cache do ruff e pytest
 .ruff_cache/
 .pytest_cache/
