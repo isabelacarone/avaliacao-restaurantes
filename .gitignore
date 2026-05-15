@@ -26,6 +26,9 @@ build/
 # Relatório HTML do coverage
 htmlcov/
 
+# Relatório coverage XML
+coverage.xml
+
 # Cache do ruff e pytest
 .ruff_cache/
 .pytest_cache/
