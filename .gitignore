@@ -36,6 +36,8 @@ coverage.xml
 # Logs de produção
 logs/
 
+DEPLOY.md
+
 # Backups e arquivos temporários
 *.bak
 *_test.db
