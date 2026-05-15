@@ -28,6 +28,7 @@ htmlcov/
 
 # Relatório coverage XML
 coverage.xml
+.coverage
 
 # Cache do ruff e pytest
 .ruff_cache/

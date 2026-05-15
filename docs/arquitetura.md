@@ -76,7 +76,7 @@ Usuario ──< Avaliacao >── Restaurante
 
 ### View (templates/)
 
-Templates Jinja2 que herdam de `base.html`. Todos usam `{% extends 'base.html' %}`.
+Templates Jinja2 que herdam de `base.html`. Todos usam `{% raw %}{% extends 'base.html' %}{% endraw %}`.
 
 ### Controller (blueprints/)
 
