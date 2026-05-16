@@ -70,8 +70,8 @@ def create_app(test_config: dict | None = None) -> Flask:
         try:
             db.session.execute(db.text("SELECT 1"))
             return {"status": "ok", "db": "connected"}, 200
-        except Exception as exc:
-            return {"status": "error", "detail": str(exc)}, 500
+        except Exception:
+            return {"status": "error", "db": "unavailable"}, 500
 
     @app.errorhandler(RequestEntityTooLarge)
     def arquivo_muito_grande(e: RequestEntityTooLarge) -> tuple:
@@ -99,11 +99,14 @@ def create_app(test_config: dict | None = None) -> Flask:
 
 def _seed_inicial() -> None:
     """Popula o banco com dados iniciais se estiver vazio."""
+    import importlib.util
+    import pathlib
+
     from app.models import Restaurante
+
     try:
         if Restaurante.query.first() is not None:
             return
-        import importlib.util, pathlib
         spec = importlib.util.spec_from_file_location(
             "seed", pathlib.Path(__file__).parent.parent / "seed.py"
         )
@@ -111,7 +114,6 @@ def _seed_inicial() -> None:
         spec.loader.exec_module(mod)
         mod.seed()
     except Exception as exc:
-        import logging
         logging.getLogger(__name__).warning("Seed ignorado: %s", exc)
 
 
