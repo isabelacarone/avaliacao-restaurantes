@@ -90,7 +90,8 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.errorhandler(500)
     def erro_interno(e):
-        app.logger.error("Erro interno: %s", e)
+        import traceback
+        app.logger.error("Erro interno: %s\n%s", e, traceback.format_exc())
         return render_template("erros/500.html"), 500
 
     return app

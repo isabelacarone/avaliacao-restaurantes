@@ -8,9 +8,9 @@
 
 ## Sobre o projeto
 
-Plataforma web para avaliação de restaurantes construída com Flask, onde usuários cadastram avaliações com notas por critério (atendimento, ambiente, prato, preço), comentário e foto. A aplicação também calcula a nota média de cada restaurante.
+Plataforma web para avaliação de restaurantes construída com Flask, onde Usuários cadastram avaliações com notas por critério (atendimento, ambiente, prato, preço), comentário e foto. A aplicação também calcula a nota média de cada restaurante.
 
-**Tecnologias utilizadas:** Flask 3, SQLAlchemy, Flask-Migrate, Flask-Login, Flask-WTF, Bootstrap 5, SQLite, uv
+**Tecnologias:** Flask 3, SQLAlchemy, Flask-Login, Flask-WTF, Bootstrap 5, SQLite, uv
 
 ---
 
@@ -63,81 +63,154 @@ source .venv/bin/activate
 ### 4. Instalar as dependências
 
 ```bash
-uv sync
+uv pip install -e ".[dev]"
 ```
 
-Instala todas as dependências a partir do `uv.lock`, garantindo versões exatas. 
+__O flag `-e` instala o projeto em modo editável__
+<br>
+__O `[dev]` inclui ferramentas de dev tipo o `ruff`__
 
 ---
 
+## Entendendo o uv.lock
+
+O arquivo `uv.lock` registra as versões exatas de todas as dependências resolvidas. Ele garante que todo membro da equipe e qualquer ambiente de CI instale exatamente os mesmos pacotes.
+
+### Quando o uv.lock é atualizado?
+
+- Quando você adiciona ou remove dependências no `pyproject.toml`
+- Quando você roda `uv pip compile` manualmente
+
+### Instalar a partir do lockfile (reproduzir ambiente exato)
+
+```bash
+uv pip sync uv.lock
+```
+### Regenerar o lockfile após mudar dependências
+
+```bash
+# 1. Edite pyproject.toml adicionando/removendo pacotes
+
+# 2. Instale as novas dependências
+uv pip install -e ".[dev]"
+
+# 3. Atualize o lockfile
+uv pip compile pyproject.toml -o uv.lock
+```
+
+### Adicionar uma nova dependência
+
+```bash
+# Edite pyproject.toml manualmente, depois:
+uv pip install <pacote>
+uv pip compile pyproject.toml -o uv.lock
+```
+
+---
 
 ## Rodando a aplicação
 
 ```bash
 uv run python run.py
 ```
+
 ---
 
+## Verificação rápida do código
+
+O projeto usa [ruff](https://docs.astral.sh/ruff/), garantindo PEP 8
+
+```bash
+# Verificar erros
+uv run ruff check app/ run.py
+
+# Corrigir automaticamente os erros corrigíveis
+uv run ruff check --fix app/ run.py
+```
+
+---
+
+## Deploy no Render
+
+A aplicação está hospedada em: **https://avaliacao-restaurantes.onrender.com**
+
+### Como funciona o deploy
+
+O Render detecta o `requirements.txt` automaticamente e usa o `Procfile` para iniciar a aplicação. A cada deploy, a sequência executada é:
+
+```
+flask db upgrade → python seed.py → gunicorn
+```
+
+### Configuração do serviço no Render
+
+| Campo | Valor |
+|---|---|
+| Environment | Python 3 |
+| Build Command | `pip install -r requirements.txt` |
+| Start Command | *(definido pelo Procfile)* |
+
+### Variáveis de ambiente necessárias
+
+| Variável | Valor |
+|---|---|
+| `FLASK_APP` | `run.py` |
+| `FLASK_ENV` | `production` |
+| `SECRET_KEY` | *(gerar automaticamente no painel)* |
+
+### Dados de teste
+
+O `seed.py` popula o banco automaticamente a cada deploy com restaurantes e usuários de exemplo. Todas as contas de teste usam a senha `senha123`:
+
+```
+ana@example.com / bruno@example.com / carla@example.com
+diego@example.com / elena@example.com / fabio@example.com
+```
+
+> **Atenção:** o Render free usa SQLite com sistema de arquivos efêmero. Dados criados pelos usuários (cadastros, avaliações) são perdidos a cada novo deploy. Para persistência real, seria necessário migrar para PostgreSQL.
+
+---
+
+<!--
 ## Estrutura do projeto
 
 ```
 avaliacao-restaurantes/
 ├── app/
-│   ├── __init__.py          
-│   ├── config.py            
-│   ├── models.py            
-│   ├── forms.py             
-│   ├── auth/                
-│   ├── restaurantes/        
-│   ├── avaliacoes/          
-│   ├── static/uploads/      
-│   └── templates/           
-│       ├── auth/perfil.html
-│       ├── avaliacoes/nova.html    
-│       └── avaliacoes/editar.html  
-├── migrations/              
-│   └── versions/
-├── docs/                    
+│   ├── __init__.py          # Application Factory
+│   ├── config.py            # Configurações
+│   ├── models.py            # Usuario, Restaurante, Avaliacao
+│   ├── forms.py             # Formulários WTForms
+│   ├── auth/                # Blueprint: login, cadastro, logout
+│   ├── restaurantes/        # Blueprint: listagem, detalhe, cadastro
+│   ├── avaliacoes/          # Blueprint: nova avaliação
+│   ├── static/uploads/      # Fotos enviadas pelos usuários
+│   └── templates/           # Templates Jinja2 (Bootstrap 5)
+├── docs/                    # Documentação técnica
 │   ├── arquitetura.md
 │   ├── modelos.md
 │   ├── rotas.md
-│   └── implementacoes.md
-│   
-│ambiente
-├── run.py                   
-├── pyproject.toml           
-└── uv.lock                   
+│   └── proximos-passos.md
+├── run.py                   # Ponto de entrada
+├── pyproject.toml           # Metadados e dependências
+└── uv.lock                  # Lockfile (versões exatas)
 ```
 
 ---
 
 ## Funcionalidades implementadas
 
-| ID | Descrição |
-|---|---|
-| RF01 | Cadastro de usuários |
-| RF02 | Login/logout |
-| RF03 | Cadastro de restaurantes |
-| RF04 | Listagem com paginação e ordenação |
-| RF05 | Avaliações com notas e comentários |
-| RF06 | Cálculo e exibição de nota média |
-| RF07 | Upload de foto com preview |
-| RF08 | Busca por nome, categoria e faixa de preço |
-| RF09 | Página de perfil do usuário |
-| RF10 | Edição e exclusão de avaliações próprias |
-| RF11 | Bloqueio de avaliação duplicada |
-| RF12 | Migrações de schema com Flask-Migrate |
-| RF13 | Tratamento de erro 413 (upload acima de 2 MB) |
-| RF14 | Paginação de avaliações no detalhe do restaurante |
-| RF15 | Botões editar/excluir no detalhe (apenas o autor) |
-| RF16 | Testes automatizados (21 testes com pytest) |
-| RF17 | Seed de banco para desenvolvimento |
-| RF18 | Datas com fuso horário (timezone-aware) |
-| RF19 | Isolamento total dos testes do banco real |
-| RF20 | Validadores WTForms: e-mail único, nome de restaurante único |
-| RF21 | Validação client-side JS (vazio, e-mail, confirmação de senha) |
-| RF22 | Modal de confirmação de exclusão com nome do item |
-| RF23 | Cobertura de testes 88% (pytest-cov) |
+| ID | Descrição | Status |
+|---|---|---|
+| RF01 | Cadastro de usuários | ✅ |
+| RF02 | Login/logout | ✅ |
+| RF03 | Cadastro de restaurantes | ✅ |
+| RF04 | Listagem de restaurantes | ✅ |
+| RF05 | Avaliações com notas e comentários | ✅ |
+| RF06 | Cálculo e exibição de nota média | ✅ |
+| RF07 | Upload de foto na avaliação | ✅ |
+| RF08 | Busca por nome, categoria e faixa de preço | ✅ |
+| RF09 | Página de perfil do usuário | 🔲 pendente |
 
 ---
 
@@ -145,25 +218,26 @@ avaliacao-restaurantes/
 
 ### Requisitos Funcionais
 
-| ID | Descrição | 
-|---|---|
-| RF01 | Cadastro com nome, e-mail e senha |
-| RF02 | Autenticação via e-mail e senha |
-| RF03 | Cadastro de restaurantes | 
-| RF04 | Listagem de restaurantes | 
-| RF05 | Avaliações com notas e comentários | 
-| RF06 | Cálculo automático de nota média | 
-| RF07 | Upload de imagem na avaliação | 
-| RF08 | Busca por nome, categoria e faixa de preço | 
-| RF09 | Página de perfil do usuário | 
+| ID | Descrição | Prioridade |
+|---|---|---|
+| RF01 | Cadastro com nome, e-mail e senha | Alta |
+| RF02 | Autenticação via e-mail e senha | Alta |
+| RF03 | Cadastro de restaurantes | Alta |
+| RF04 | Listagem de restaurantes | Alta |
+| RF05 | Avaliações com notas e comentários | Alta |
+| RF06 | Cálculo automático de nota média | Alta |
+| RF07 | Upload de imagem na avaliação | Média |
+| RF08 | Busca por nome, categoria e faixa de preço | Média |
+| RF09 | Página de perfil do usuário | Baixa |
 
 ### Requisitos Não Funcionais
 
-| ID | Descrição | 
-|---|---|
-| RNF01 | Interface responsiva (Bootstrap 5) |
-| RNF02 | Senhas com hash (Werkzeug PBKDF2) | 
-| RNF03 | Padrão MVC com Flask Blueprints | 
-| RNF04 | Versionado no GitHub | 
+| ID | Descrição | Status |
+|---|---|---|
+| RNF01 | Interface responsiva (Bootstrap 5) | ✅ |
+| RNF02 | Senhas com hash (Werkzeug PBKDF2) | ✅ |
+| RNF03 | Padrão MVC com Flask Blueprints | ✅ |
+| RNF04 | Páginas carregam em menos de 3 segundos | ✅ |
+| RNF05 | Versionado no GitHub | ✅ |
 
-
+-->
