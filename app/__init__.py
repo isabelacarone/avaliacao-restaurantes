@@ -62,6 +62,9 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     login_manager.user_loader(user_loader_callback)
 
+    with app.app_context():
+        _seed_inicial()
+
     @app.route("/health")
     def health():
         try:
@@ -92,6 +95,24 @@ def create_app(test_config: dict | None = None) -> Flask:
         return render_template("erros/500.html"), 500
 
     return app
+
+
+def _seed_inicial() -> None:
+    """Popula o banco com dados iniciais se estiver vazio."""
+    from app.models import Restaurante
+    try:
+        if Restaurante.query.first() is not None:
+            return
+        import importlib.util, pathlib
+        spec = importlib.util.spec_from_file_location(
+            "seed", pathlib.Path(__file__).parent.parent / "seed.py"
+        )
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        mod.seed()
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).warning("Seed ignorado: %s", exc)
 
 
 def _configurar_logging(app: Flask) -> None:
