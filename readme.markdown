@@ -129,7 +129,49 @@ uv run ruff check --fix app/ run.py
 ```
 
 ---
-<!-- 
+
+## Deploy no Render
+
+A aplicação está hospedada em: **https://avaliacao-restaurantes.onrender.com**
+
+### Como funciona o deploy
+
+O Render detecta o `requirements.txt` automaticamente e usa o `Procfile` para iniciar a aplicação. A cada deploy, a sequência executada é:
+
+```
+flask db upgrade → python seed.py → gunicorn
+```
+
+### Configuração do serviço no Render
+
+| Campo | Valor |
+|---|---|
+| Environment | Python 3 |
+| Build Command | `pip install -r requirements.txt` |
+| Start Command | *(definido pelo Procfile)* |
+
+### Variáveis de ambiente necessárias
+
+| Variável | Valor |
+|---|---|
+| `FLASK_APP` | `run.py` |
+| `FLASK_ENV` | `production` |
+| `SECRET_KEY` | *(gerar automaticamente no painel)* |
+
+### Dados de teste
+
+O `seed.py` popula o banco automaticamente a cada deploy com restaurantes e usuários de exemplo. Todas as contas de teste usam a senha `senha123`:
+
+```
+ana@example.com / bruno@example.com / carla@example.com
+diego@example.com / elena@example.com / fabio@example.com
+```
+
+> **Atenção:** o Render free usa SQLite com sistema de arquivos efêmero. Dados criados pelos usuários (cadastros, avaliações) são perdidos a cada novo deploy. Para persistência real, seria necessário migrar para PostgreSQL.
+
+---
+
+<!--
 ## Estrutura do projeto
 
 ```
