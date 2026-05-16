@@ -5,7 +5,7 @@ services:
     plan: free
     pythonVersion: 3.12
     buildCommand: bash build.sh
-    startCommand: .venv/bin/flask db upgrade && .venv/bin/gunicorn --worker-class sync --workers 1 --timeout 60 --bind 0.0.0.0:$PORT run:app
+    startCommand: bash start.sh
     envVars:
       - key: FLASK_ENV
         value: production
