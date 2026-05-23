@@ -4,8 +4,10 @@ import os
 
 BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPLOAD_FOLDER: str = os.path.join(BASE_DIR, "app", "static", "uploads")
+UPLOAD_FOLDER_PERFIL: str = os.path.join(BASE_DIR, "app", "static", "uploads", "perfil")
 MAX_CONTENT_LENGTH: int = 2 * 1024 * 1024
 ALLOWED_EXTENSIONS: set[str] = {"png", "jpg", "jpeg", "gif"}
+ALLOWED_EXTENSIONS_PERFIL: set[str] = {"png", "jpg", "jpeg"}
 
 
 class Config:
@@ -13,8 +15,10 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
     UPLOAD_FOLDER: str = UPLOAD_FOLDER
+    UPLOAD_FOLDER_PERFIL: str = UPLOAD_FOLDER_PERFIL
     MAX_CONTENT_LENGTH: int = MAX_CONTENT_LENGTH
     ALLOWED_EXTENSIONS: set[str] = ALLOWED_EXTENSIONS
+    ALLOWED_EXTENSIONS_PERFIL: set[str] = ALLOWED_EXTENSIONS_PERFIL
 
     @classmethod
     def init(cls) -> None:

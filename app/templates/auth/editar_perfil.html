@@ -14,8 +14,33 @@
 </div>
 
 <div class="container-fluid px-4 py-4" style="max-width:520px;">
-    <form method="POST" action="{{ url_for('auth.editar_perfil') }}" id="form-editar-perfil" novalidate>
+    <form method="POST" action="{{ url_for('auth.editar_perfil') }}"
+          id="form-editar-perfil" enctype="multipart/form-data" novalidate>
         {{ form.hidden_tag() }}
+
+        <!-- Foto de perfil -->
+        <div class="mb-4">
+            <div class="d-flex align-items-center gap-3 mb-2">
+                {% if current_user.foto_perfil_path %}
+                    <img src="{{ url_for('static', filename='uploads/perfil/' + current_user.foto_perfil_path) }}"
+                         alt="Foto de perfil"
+                         style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:0.5px solid #e5e5e5;">
+                {% else %}
+                    {% set nome_parts = current_user.nome.split() %}
+                    <div class="avatar-inicial" style="width:56px;height:56px;font-size:18px;background:#FAECE7;color:#993C1D;">
+                        {{ nome_parts[0][0].upper() }}{{ nome_parts[-1][0].upper() if nome_parts | length > 1 else '' }}
+                    </div>
+                {% endif %}
+                <div>
+                    {{ form.foto_perfil.label(style="font-size:13px;font-weight:500;color:#1a1a1a;") }}
+                    {{ form.foto_perfil(class="form-control form-control-sm mt-1", style="font-size:12px;") }}
+                    <div style="font-size:11px;color:#aaa;margin-top:3px;">PNG, JPG ou JPEG · máx. 2 MB</div>
+                </div>
+            </div>
+            {% for e in form.foto_perfil.errors %}
+                <div class="invalid-feedback d-block" style="font-size:11px;">{{ e }}</div>
+            {% endfor %}
+        </div>
 
         <div class="mb-3">
             {{ form.nome.label(style="font-size:13px;font-weight:500;color:#1a1a1a;") }}
@@ -33,15 +58,23 @@
             {% endfor %}
         </div>
 
+        <div class="mb-4">
+            {{ form.idade.label(style="font-size:13px;font-weight:500;color:#1a1a1a;") }}
+            {{ form.idade(class="form-control form-control-sm mt-1", placeholder="Opcional · visível apenas para você", style="max-width:160px;") }}
+            {% for e in form.idade.errors %}
+                <div class="invalid-feedback d-block" style="font-size:11px;">{{ e }}</div>
+            {% endfor %}
+        </div>
+
         <hr style="border-color:#f0f0f0;margin:1.25rem 0;">
         <p style="font-size:12px;color:#888;margin-bottom:.75rem;">
-            Informe sua senha atual para confirmar as alterações.
             Preencha os campos abaixo apenas se quiser trocar a senha.
+            A senha atual é obrigatória nesse caso.
         </p>
 
         <div class="mb-3">
             {{ form.senha_atual.label(style="font-size:13px;font-weight:500;color:#1a1a1a;") }}
-            {{ form.senha_atual(class="form-control form-control-sm mt-1", **{"data-v": "required", "data-v-label": "Senha atual"}) }}
+            {{ form.senha_atual(class="form-control form-control-sm mt-1") }}
             {% for e in form.senha_atual.errors %}
                 <div class="invalid-feedback d-block" style="font-size:11px;">{{ e }}</div>
             {% endfor %}

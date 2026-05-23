@@ -12,13 +12,18 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_talisman import Talisman
 from werkzeug.exceptions import RequestEntityTooLarge
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from app.config import get_config
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 migrate = Migrate()
-limiter = Limiter(key_func=get_remote_address, default_limits=["200 per day"])
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["200 per day"],
+    headers_enabled=True,  # expõe X-RateLimit-* nas respostas
+)
 
 _CSP = {
     "default-src": "'self'",
@@ -32,6 +37,9 @@ _CSP = {
 def create_app(test_config: dict | None = None) -> Flask:
     app = Flask(__name__)
     app.config.from_object(get_config())
+
+    # Confia em 1 nível de proxy (Render, nginx, etc.) para ler o IP real do cliente
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     if test_config:
         app.config.update(test_config)

@@ -6,16 +6,23 @@
 <div style="background:#fff;border-bottom:0.5px solid #e5e5e5;padding:1.5rem;">
     <div class="container-fluid px-2" style="max-width:760px;">
         <div class="d-flex align-items-center gap-3">
-            {% set nome_parts = current_user.nome.split() %}
-            <div class="avatar-inicial" style="width:48px;height:48px;font-size:16px;background:#FAECE7;color:#993C1D;">
-                {{ nome_parts[0][0].upper() }}{{ nome_parts[-1][0].upper() if nome_parts | length > 1 else '' }}
-            </div>
+            {% if current_user.foto_perfil_path %}
+                <img src="{{ url_for('static', filename='uploads/perfil/' + current_user.foto_perfil_path) }}"
+                     alt="Foto de perfil"
+                     style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:0.5px solid #e5e5e5;flex-shrink:0;">
+            {% else %}
+                {% set nome_parts = current_user.nome.split() %}
+                <div class="avatar-inicial" style="width:48px;height:48px;font-size:16px;background:#FAECE7;color:#993C1D;">
+                    {{ nome_parts[0][0].upper() }}{{ nome_parts[-1][0].upper() if nome_parts | length > 1 else '' }}
+                </div>
+            {% endif %}
             <div>
                 <div style="font-size:16px;font-weight:500;color:#1a1a1a;">{{ current_user.nome }}</div>
                 <div style="font-size:12px;color:#888;">{{ current_user.email }}</div>
                 <div style="font-size:11px;color:#aaa;margin-top:2px;">
                     Membro desde {{ current_user.criado_em.strftime('%B de %Y') }}
                     · {{ total_avaliacoes }} avaliação{{ '' if total_avaliacoes == 1 else 'ões' }}
+                    {% if current_user.idade %}· {{ current_user.idade }} anos{% endif %}
                 </div>
             </div>
         </div>
@@ -23,6 +30,27 @@
 </div>
 
 <div class="container-fluid px-4 py-4" style="max-width:760px;">
+
+    <!-- Favoritos recentes -->
+    {% if favoritos_recentes %}
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span style="font-size:13px;font-weight:500;color:#1a1a1a;">Favoritos</span>
+            <a href="{{ url_for('favoritos.listar') }}"
+               style="font-size:12px;color:#D85A30;text-decoration:none;">Ver todos →</a>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            {% for fav in favoritos_recentes %}
+            <a href="{{ url_for('restaurantes.detalhe', restaurante_id=fav.restaurante_id) }}"
+               style="font-size:12px;color:#1a1a1a;text-decoration:none;padding:4px 12px;border:0.5px solid #e5e5e5;border-radius:20px;background:#fff;white-space:nowrap;">
+                ♥ {{ fav.restaurante.nome }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    <hr style="border-color:#f0f0f0;margin-bottom:1.25rem;">
+    {% endif %}
+
     <div class="d-flex justify-content-between align-items-center mb-3">
         <span style="font-size:13px;font-weight:500;color:#1a1a1a;">
             Minhas avaliações
