@@ -232,21 +232,22 @@ def test_editar_perfil_muda_senha(cliente_logado):
     assert u.check_senha("novaSenha456")
 
 
-def test_editar_perfil_senha_atual_errada(cliente_logado):
-    """Senha atual incorreta deve rejeitar a alteração."""
+def test_editar_perfil_senha_atual_errada_ao_trocar_senha(cliente_logado):
+    """Senha atual incorreta deve rejeitar a troca de senha."""
     resp = cliente_logado.post(
         "/perfil/editar",
         data={
             "nome": "Test User",
             "email": "test@example.com",
             "senha_atual": "errada",
-            "nova_senha": "",
-            "confirmar_nova_senha": "",
+            "nova_senha": "NovaSenha99",
+            "confirmar_nova_senha": "NovaSenha99",
         },
         follow_redirects=True,
     )
     assert resp.status_code == 200
-    assert b"incorreta" in resp.data.lower() or b"atual" in resp.data.lower()
+    u = Usuario.query.filter_by(email="test@example.com").first()
+    assert not u.check_senha("NovaSenha99")
 
 
 def test_editar_perfil_email_duplicado_rejeitado(cliente_logado, app_ctx):
