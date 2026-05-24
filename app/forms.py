@@ -10,7 +10,14 @@ from wtforms import (
     StringField,
     TextAreaField,
 )
-from wtforms.validators import DataRequired, Email, EqualTo, Length, NumberRange, Optional
+from wtforms.validators import (
+    DataRequired,
+    Email,
+    EqualTo,
+    Length,
+    NumberRange,
+    Optional,
+)
 
 from app.validators import SenhaForte, UniqueEmail, UniqueNomeRestaurante
 
@@ -151,13 +158,15 @@ class EditarPerfilForm(FlaskForm):
     )
     foto_perfil = FileField(
         "Foto de perfil (opcional)",
-        validators=[FileAllowed(EXTENSOES_PERFIL, "Apenas imagens PNG, JPG ou JPEG são permitidas.")],
+        validators=[
+            FileAllowed(EXTENSOES_PERFIL, "Apenas PNG, JPG ou JPEG são permitidos.")
+        ],
     )
     idade = IntegerField(
         "Idade",
         validators=[
             Optional(),
-            NumberRange(min=18, max=120, message="A idade deve estar entre 18 e 120 anos."),
+            NumberRange(min=18, max=120, message="Idade deve ser entre 18 e 120 anos."),
         ],
     )
     senha_atual = PasswordField(

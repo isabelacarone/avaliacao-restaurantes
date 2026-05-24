@@ -8,7 +8,7 @@ from flask_wtf import FlaskForm
 
 from app import db, limiter
 from app.auth import auth_bp
-from app.forms import EditarPerfilForm, CadastroForm, LoginForm
+from app.forms import CadastroForm, EditarPerfilForm, LoginForm
 from app.models import Avaliacao, Favorito, Restaurante, Usuario
 
 _MAGIC_BYTES_PERFIL: dict[str, bytes] = {
@@ -103,7 +103,9 @@ def editar_perfil() -> str:
     if form.validate_on_submit():
         # Troca de senha requer confirmação da senha atual
         if form.nova_senha.data:
-            if not form.senha_atual.data or not current_user.check_senha(form.senha_atual.data):
+            senha_atual = form.senha_atual.data
+            senha_ok = senha_atual and current_user.check_senha(senha_atual)
+            if not senha_ok:
                 form.senha_atual.errors.append("Senha atual incorreta.")
                 return render_template("auth/editar_perfil.html", form=form)
             current_user.set_senha(form.nova_senha.data)

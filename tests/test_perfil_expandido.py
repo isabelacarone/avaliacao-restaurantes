@@ -2,11 +2,8 @@
 
 import io
 
-import pytest
-
 from app import db
 from app.models import Favorito, Usuario
-
 
 # ---------------------------------------------------------------------------
 # 5.1 Modelo
