@@ -45,3 +45,5 @@ DEPLOY.md
 
 # configs claude local
 .claude/ 
+
+.specs/ 

@@ -4,12 +4,20 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed, FileField
 from wtforms import (
     EmailField,
+    IntegerField,
     PasswordField,
     SelectField,
     StringField,
     TextAreaField,
 )
-from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional
+from wtforms.validators import (
+    DataRequired,
+    Email,
+    EqualTo,
+    Length,
+    NumberRange,
+    Optional,
+)
 
 from app.validators import SenhaForte, UniqueEmail, UniqueNomeRestaurante
 
@@ -42,6 +50,7 @@ NOTAS: list[tuple[str, str]] = [
 NOTAS_AVALIACAO: list[tuple[str, str]] = [("", "Selecione..."), *NOTAS]
 
 EXTENSOES_PERMITIDAS: list[str] = ["png", "jpg", "jpeg", "gif"]
+EXTENSOES_PERFIL: list[str] = ["png", "jpg", "jpeg"]
 
 
 class LoginForm(FlaskForm):
@@ -147,9 +156,22 @@ class EditarPerfilForm(FlaskForm):
             Email(message="Informe um e-mail válido."),
         ],
     )
+    foto_perfil = FileField(
+        "Foto de perfil (opcional)",
+        validators=[
+            FileAllowed(EXTENSOES_PERFIL, "Apenas PNG, JPG ou JPEG são permitidos.")
+        ],
+    )
+    idade = IntegerField(
+        "Idade",
+        validators=[
+            Optional(),
+            NumberRange(min=18, max=120, message="Idade deve ser entre 18 e 120 anos."),
+        ],
+    )
     senha_atual = PasswordField(
         "Senha atual",
-        validators=[DataRequired(message="Informe sua senha atual para confirmar.")],
+        validators=[Optional()],
     )
     nova_senha = PasswordField(
         "Nova senha (deixe em branco para manter a atual)",

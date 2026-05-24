@@ -11,11 +11,18 @@ from app import db
 
 class Usuario(UserMixin, db.Model):
     __tablename__ = "usuario"
+    __table_args__ = (
+        db.CheckConstraint(
+            "idade IS NULL OR (idade >= 18 AND idade <= 120)", name="ck_idade"
+        ),
+    )
 
     id: int = db.Column(db.Integer, primary_key=True)
     nome: str = db.Column(db.String(120), nullable=False)
     email: str = db.Column(db.String(150), unique=True, nullable=False)
     senha_hash: str = db.Column(db.String(256), nullable=False)
+    foto_perfil_path: str | None = db.Column(db.String(256), nullable=True)
+    idade: int | None = db.Column(db.Integer, nullable=True)
     criado_em: datetime = db.Column(
         db.DateTime, default=lambda: datetime.now(timezone.utc)
     )
