@@ -51,10 +51,10 @@ class SenhaForte:
     """Valida que a senha tem no mínimo 8 caracteres e contém letras e números."""
 
     def __call__(self, form, field) -> None:  # noqa: ANN001
-        v = field.data or ""
-        if not v:
+        senha = field.data or ""
+        if not senha:
             return
-        if len(v) < 8:
+        if len(senha) < 8:
             raise ValidationError("A senha deve ter no mínimo 8 caracteres.")
-        if not re.search(r"[A-Za-z]", v) or not re.search(r"\d", v):
+        if not re.search(r"[A-Za-z]", senha) or not re.search(r"\d", senha):
             raise ValidationError("A senha deve conter letras e números.")

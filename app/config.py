@@ -11,7 +11,7 @@ ALLOWED_EXTENSIONS_PERFIL: set[str] = {"png", "jpg", "jpeg"}
 
 
 class Config:
-    """Configurações base — herdada por todas as outras."""
+    """Configurações base, herdada por todas as outras."""
 
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
     UPLOAD_FOLDER: str = UPLOAD_FOLDER
