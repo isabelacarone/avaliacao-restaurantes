@@ -162,6 +162,7 @@ def test_config_producao_usa_database_url_do_env(monkeypatch):
 
 def test_config_seleciona_producao_pelo_env(monkeypatch):
     monkeypatch.setenv("FLASK_ENV", "production")
+    monkeypatch.setenv("SECRET_KEY", "chave-obrigatoria-em-producao")
     import importlib
 
     import app.config as cfg_mod
