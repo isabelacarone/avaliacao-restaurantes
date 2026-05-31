@@ -1,34 +1,73 @@
-# Mesa Certa — Documentação de Entrega
+# Mesa Certa: Documentação de Entrega
 
 **Disciplina:** Programação Avançada para Web
+<br>
+**Produto:** Mesa Certa, rede social de avaliação de restaurantes
+<br>
 **Integrantes:** Isabela Carone · Isabela Campagnollo · João Antônio
+<br>
+**Repositório:** versionado no GitHub (branch principal `main`, desenvolvimento em `dev`)
+<br>
+**Deploy:** https://avaliacao-restaurantes.onrender.com
+
+---
+
+## Sumário
+
+1. Descrição geral do produto
+2. Diagrama do banco de dados (modelo ER)
+3. Arquitetura adotada
+4. Estrutura de pastas
+5. Detalhamento técnico das principais partes
+6. Segurança
+7. Testes automatizados e qualidade de código
+8. Tecnologias utilizadas e justificativa
+9. Como rodar o projeto (passo a passo)
+10. Deploy
+11. Principais desafios encontrados e como foram resolvidos
+12. Atendimento aos critérios de avaliação
 
 ---
 
 ## 1. Descrição geral do produto
 
-**Mesa Certa** é uma plataforma web de avaliação de restaurantes. Usuários cadastrados
-publicam avaliações com **quatro notas por critério** (atendimento, ambiente, prato e
-relação preço/qualidade), comentário e foto opcional. A aplicação calcula a **nota média**
-de cada restaurante e permite descobrir lugares por busca, categoria, faixa de preço e nota
-mínima.
+O **Mesa Certa** é um site de avaliação de restaurantes, no estilo de uma rede social de recomendação. A pessoa se cadastra, faz login e avalia restaurantes dando **quatro notas** (atendimento, ambiente, qualidade do prato e preço), com direito a comentário e foto. Com base nessas notas, o site calcula sozinho a **média** de cada restaurante.
 
-### Funcionalidades
+Dá pra explorar os restaurantes mesmo sem estar logado: a listagem é pública e tem **busca por nome, filtro por categoria, faixa de preço e nota mínima**, além de **ordenação** (mais recentes, melhor nota ou mais avaliados) e **paginação**. Quem está logado também pode **favoritar** restaurantes e **editar ou apagar** as próprias avaliações.
+
+### Requisitos funcionais
 
 | ID | Funcionalidade |
 |----|----------------|
-| RF01 | Cadastro de usuários (nome, e-mail, senha com hash) |
-| RF02 | Autenticação (login/logout) via Flask-Login |
+| RF01 | Cadastro de usuários (nome, e-mail e senha com hash) |
+| RF02 | Autenticação (login e logout) via Flask-Login |
 | RF03 | Cadastro de restaurantes |
-| RF04 | Listagem de restaurantes com **paginação** e **ordenação** |
+| RF04 | Listagem de restaurantes com paginação e ordenação |
 | RF05 | Avaliações com 4 notas, comentário e foto |
 | RF06 | Cálculo automático da nota média por restaurante |
-| RF07 | Upload de imagem (avaliação e foto de perfil) |
+| RF07 | Upload de imagem (na avaliação e na foto de perfil) |
 | RF08 | Busca por nome, categoria, faixa de preço e nota mínima |
-| RF09 | Página de perfil (avaliações, favoritos, foto, idade) |
-| — | Favoritar restaurantes |
-| — | Editar/excluir avaliações (apenas o autor) |
-| — | Bloqueio de avaliação duplicada por usuário/restaurante |
+| RF09 | Página de perfil (avaliações, favoritos, foto e idade) |
+
+### Funcionalidades complementares
+
+| Funcionalidade | Descrição |
+|----------------|-----------|
+| Favoritos | Salvar e listar os restaurantes favoritos do usuário |
+| Edição/exclusão de avaliações | Só o autor da avaliação pode mexer (senão, HTTP 403) |
+| Bloqueio de avaliação duplicada | Cada usuário só avalia um restaurante uma vez |
+| Soft delete de restaurantes | Restaurante "removido" fica escondido, não é apagado de verdade |
+| Edição de perfil | Foto, idade e troca de senha (a senha só é pedida quando se quer trocá-la) |
+
+### Requisitos não funcionais
+
+| ID | Requisito | Como é atendido |
+|----|-----------|-----------------|
+| RNF01 | Interface responsiva | Bootstrap 5 |
+| RNF02 | Senhas com hash | Werkzeug PBKDF2 (`generate_password_hash`) |
+| RNF03 | Arquitetura modular | Application Factory + Blueprints |
+| RNF04 | Proteção contra abuso | Flask-Limiter (rate limiting) e Flask-Talisman (CSP) |
+| RNF05 | Versionamento | Git/GitHub, com migrations versionadas (Alembic) |
 
 ---
 
@@ -81,41 +120,100 @@ erDiagram
     }
 ```
 
-**Constraints de integridade:** `uq_avaliacao_usuario_rest` e `uq_favorito_usuario_rest`
-(unicidade por par usuário-restaurante); `ck_idade` (18–120); `ck_nota_*` (cada nota 1–5).
+### Entidades
+
+| Entidade | Papel | Destaques de modelagem |
+|----------|-------|------------------------|
+| `Usuario` | Pessoa cadastrada | E-mail único; senha sempre em hash; foto e idade opcionais |
+| `Restaurante` | Estabelecimento avaliado | Colunas de busca indexadas; soft delete via `deletado_em` |
+| `Avaliacao` | Nota de um usuário a um restaurante | 4 notas validadas; média pré-calculada para performance |
+| `Favorito` | Associação usuário/restaurante | Tabela de junção com unicidade por par |
+
+### Constraints de integridade
+
+| Constraint | Tabela | Garante |
+|------------|--------|---------|
+| `uq_avaliacao_usuario_rest` | avaliacao | Uma avaliação por par (usuário, restaurante) |
+| `uq_favorito_usuario_rest` | favorito | Um favorito por par (usuário, restaurante) |
+| `ck_idade` | usuario | `idade IS NULL OR 18 <= idade <= 120` |
+| `ck_nota_atendimento/ambiente/prato/preco` | avaliacao | Cada nota entre 1 e 5 |
+
+Essas regras ficam no próprio banco, não só na aplicação. Assim, mesmo que algum dado entre por fora das rotas, o banco continua íntegro.
 
 ---
 
 ## 3. Arquitetura adotada
 
-A aplicação segue o padrão **MVC** com **Application Factory** e **Blueprints** do Flask,
-separando responsabilidades em módulos independentes.
+O projeto segue o padrão **MVC** (Model, View, Controller), montado com **Application Factory** e **Blueprints** do Flask. Cada parte do sistema (autenticação, restaurantes, avaliações e favoritos) é um módulo separado, com suas próprias rotas.
+
+### Camadas
+
+| Camada | Onde | Responsabilidade |
+|--------|------|------------------|
+| **Model** | `app/models.py` | Entidades SQLAlchemy: `Usuario`, `Restaurante`, `Avaliacao`, `Favorito` |
+| **View** | `app/templates/` | Templates Jinja2 herdando de `base.html` (Bootstrap 5) |
+| **Controller** | `app/auth/`, `app/restaurantes/`, `app/avaliacoes/`, `app/favoritos/` | Blueprints com as funções de rota |
+| **Formulários** | `app/forms.py`, `app/validators.py` | Validação de entrada no servidor (WTForms) |
+| **Configuração** | `app/config.py` | Configs por ambiente (development, testing, production) |
+
+### Fluxo de uma requisição
 
 ```
-Navegador → run.py → create_app() → Blueprint → função de rota
-                                                     ↓
-                                              validação (WTForms)
-                                                     ↓
-                                            Model (db.session / ORM)
-                                                     ↓
-                                           render do template (Jinja2)
+Navegador -> run.py -> create_app() -> Blueprint -> função de rota
+                                                          |
+                                                   validação (WTForms)
+                                                          |
+                                                  Model (db.session / ORM)
+                                                          |
+                                                 render do template (Jinja2)
+                                                          |
+                                                     resposta HTML
 ```
 
-| Camada | Onde |
-|--------|------|
-| **Model** | `app/models.py` — `Usuario`, `Restaurante`, `Avaliacao`, `Favorito` (SQLAlchemy) |
-| **View** | `app/templates/` — Jinja2 herdando de `base.html` (Bootstrap 5) |
-| **Controller** | `app/auth/`, `app/restaurantes/`, `app/avaliacoes/`, `app/favoritos/` — Blueprints |
+### Por que Application Factory?
 
-A função `create_app(test_config)` (Application Factory) inicializa as extensões via
-`init_app`, registra os 4 blueprints e os handlers de erro (403/404/413/500). O schema é
-versionado com **Flask-Migrate (Alembic)** — `db.create_all()` foi removido.
+A função `create_app(test_config)` monta a aplicação na hora, em vez de deixar um objeto `Flask` global solto. Isso ajuda em três pontos:
+
+1. **Testes:** cada teste cria a sua própria versão do app, com um banco separado e sem um teste atrapalhar o outro.
+2. **Ambientes:** a configuração certa (dev, testes ou produção) é escolhida no `get_config()` conforme a variável `FLASK_ENV`.
+3. **Ordem de inicialização:** as extensões entram via `init_app`, o que evita aquele problema de importação circular entre `models`, `routes` e `app`.
 
 ---
 
-## 4. Detalhamento técnico das principais partes
+## 4. Estrutura de pastas
 
-### 4.1 Application Factory (`app/__init__.py`)
+```
+avaliacao-restaurantes/
+├── app/
+│   ├── __init__.py          # Application Factory: create_app()
+│   ├── config.py            # Configs por ambiente + variáveis de ambiente
+│   ├── models.py            # Modelos SQLAlchemy
+│   ├── forms.py             # Formulários WTForms
+│   ├── validators.py        # Validadores customizados
+│   ├── auth/                # Blueprint: login, cadastro, logout, perfil
+│   ├── restaurantes/        # Blueprint: listagem, detalhe, cadastro, filtros
+│   ├── avaliacoes/          # Blueprint: nova, editar, excluir
+│   ├── favoritos/           # Blueprint: adicionar, remover, listar
+│   ├── static/
+│   │   ├── js/validacao.js  # Validação client-side + modal de confirmação
+│   │   └── uploads/         # Fotos (avaliacoes/ e perfil/)
+│   └── templates/           # Jinja2 (base.html + páginas por domínio)
+├── tests/                   # 166 testes automatizados (pytest)
+├── migrations/              # Histórico de schema (Alembic)
+├── docs/                    # Documentação técnica
+├── scripts/empacotar.sh     # Gera o .zip de entrega
+├── seed.py                  # Popula o banco com dados de exemplo
+├── run.py                   # Ponto de entrada
+├── Procfile                 # Comando de start no deploy
+├── pyproject.toml / uv.lock # Dependências e lockfile
+└── .env.example             # Template de variáveis de ambiente
+```
+
+---
+
+## 5. Detalhamento técnico das principais partes
+
+### 5.1 Application Factory (`app/__init__.py`)
 
 ```python
 def create_app(test_config: dict | None = None) -> Flask:
@@ -123,7 +221,7 @@ def create_app(test_config: dict | None = None) -> Flask:
     app.config.from_object(get_config())
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
-    if test_config:                      # injeção ANTES de init_app (ver §6)
+    if test_config:                      # injeção ANTES de init_app (ver secao 11)
         app.config.update(test_config)
 
     db.init_app(app)
@@ -146,7 +244,9 @@ def create_app(test_config: dict | None = None) -> Flask:
     return app
 ```
 
-### 4.2 Modelagem e regra de negócio (`app/models.py`)
+A factory também cuida das páginas de erro **403, 404, 413 e 500** e de um endpoint **`/health`**, que checa se o banco está respondendo (útil pra monitorar o deploy).
+
+### 5.2 Modelagem e regra de negócio (`app/models.py`)
 
 ```python
 class Avaliacao(db.Model):
@@ -162,11 +262,18 @@ class Avaliacao(db.Model):
         self.media_calculada = round(sum(notas) / len(notas), 2)
 ```
 
-A `UniqueConstraint` garante, no nível do banco, **uma avaliação por par
-usuário-restaurante** — além do bloqueio na rota. Senhas usam **Werkzeug PBKDF2**
-(`generate_password_hash` / `check_password_hash`), nunca texto plano.
+A `UniqueConstraint` garante lá no banco que existe **só uma avaliação por par usuário/restaurante**, reforçando a checagem que já é feita na rota. A média do restaurante fica disponível como *property*:
 
-### 4.3 Validação de formulário no servidor (`app/forms.py` + `app/validators.py`)
+```python
+@property
+def media_geral(self) -> float | None:
+    notas = [av.media_calculada for av in self.avaliacoes if av.media_calculada]
+    return round(sum(notas) / len(notas), 1) if notas else None
+```
+
+As senhas passam pelo **Werkzeug PBKDF2** (`generate_password_hash` / `check_password_hash`) e nunca ficam em texto puro. Os campos `criado_em` usam `datetime.now(timezone.utc)` (com fuso).
+
+### 5.3 Validação de formulário no servidor (`app/forms.py` + `app/validators.py`)
 
 ```python
 class CadastroForm(FlaskForm):
@@ -176,16 +283,22 @@ class CadastroForm(FlaskForm):
 
 class SenhaForte:                       # validador customizado
     def __call__(self, form, field):
-        v = field.data or ""
-        if len(v) < 8 or not re.search(r"[A-Za-z]", v) or not re.search(r"\d", v):
+        senha = field.data or ""
+        if len(senha) < 8 or not re.search(r"[A-Za-z]", senha) or not re.search(r"\d", senha):
             raise ValidationError("A senha deve ter 8+ caracteres com letras e números.")
 ```
 
-Validação em três camadas: **client-side** (`static/js/validacao.js`), **servidor**
-(WTForms + validadores `UniqueEmail`, `UniqueNomeRestaurante`, `SenhaForte`) e **banco**
-(CheckConstraints). O CSRF é protegido pelo Flask-WTF em todos os formulários.
+A validação acontece em **três camadas**:
 
-### 4.4 Upload seguro de foto de perfil (`app/auth/routes.py`)
+| Camada | Onde | Exemplos |
+|--------|------|----------|
+| Cliente | `static/js/validacao.js` | Campos obrigatórios, formato de e-mail, confirmação de senha |
+| Servidor | WTForms + validadores | `UniqueEmail`, `UniqueNomeRestaurante`, `SenhaForte`, `NumberRange` |
+| Banco | CheckConstraints | Notas 1 a 5, idade 18 a 120, unicidade de e-mail |
+
+O CSRF é tratado pelo Flask-WTF em todos os formulários (cada `<form>` leva um token).
+
+### 5.4 Upload seguro de imagem (`app/auth/routes.py` e `app/avaliacoes/routes.py`)
 
 ```python
 def _salvar_foto_perfil(arquivo, usuario_id: int) -> str | None:
@@ -200,12 +313,77 @@ def _salvar_foto_perfil(arquivo, usuario_id: int) -> str | None:
     return nome
 ```
 
-Além da extensão, o upload verifica os **magic bytes** do arquivo (impede renomear um `.exe`
-para `.png`) e usa pasta dedicada (`uploads/perfil/`), separada das fotos de avaliação.
+No upload, a gente toma alguns cuidados:
+
+- Confere a **extensão** numa lista de permitidas.
+- Confere os **magic bytes** do arquivo (não adianta renomear um `.exe` pra `.png`).
+- Limita o tamanho a **2 MB** (`MAX_CONTENT_LENGTH`), com um handler próprio pro erro 413.
+- Usa **pastas separadas**: `uploads/perfil/` (nome fixo por usuário) e `uploads/` pras avaliações (nome via `uuid4`, que evita colisão e *path traversal*).
+
+### 5.5 Blueprints e rotas
+
+| Blueprint | Rotas principais | Observações |
+|-----------|------------------|-------------|
+| `auth` | `/login`, `/cadastro`, `/logout`, `/perfil`, `/perfil/editar` | `login` e `cadastro` têm rate limit |
+| `restaurantes` | `/`, `/restaurantes/<id>`, `/restaurantes/novo` | Filtros, ordenação e paginação na listagem |
+| `avaliacoes` | `/avaliacoes/nova`, `/avaliacoes/<id>/editar`, `/avaliacoes/<id>/excluir` | Edição/exclusão só pelo autor |
+| `favoritos` | `/favoritos`, `/favoritos/<id>/adicionar`, `/favoritos/<id>/remover` | Operações via POST com CSRF |
+
+### 5.6 Configuração por ambiente (`app/config.py`)
+
+| Ambiente | Característica |
+|----------|---------------|
+| `DevelopmentConfig` | `DEBUG=True`, banco SQLite local |
+| `TestingConfig` | CSRF e rate limit desativados para os testes |
+| `ProductionConfig` | Exige `SECRET_KEY` (a aplicação falha ao iniciar se ausente) |
+
+O ambiente é definido pela `FLASK_ENV`. Segredos e a URL do banco vêm de **variáveis de ambiente** (`.env`), que nunca vão pro repositório; o `.env.example` serve de modelo.
 
 ---
 
-## 5. Tecnologias utilizadas e justificativa
+## 6. Segurança
+
+| Mecanismo | Implementação |
+|-----------|---------------|
+| Hash de senhas | Werkzeug PBKDF2 |
+| Proteção CSRF | Flask-WTF (token em todos os formulários) |
+| Autenticação de sessão | Flask-Login (`@login_required`) |
+| Cabeçalhos e CSP | Flask-Talisman (ativo fora de debug/testing) |
+| Rate limiting | Flask-Limiter (ex.: login 10/min, cadastro 5/h) |
+| Upload | Lista branca de extensões + magic bytes + limite de 2 MB |
+| Nomes de arquivo | `uuid4` (avaliações) e nome determinístico (perfil) |
+| Autorização | Edição/exclusão de avaliação restrita ao autor (403 caso contrário) |
+| `SECRET_KEY` em produção | Obrigatória: a aplicação não inicia sem ela |
+| Proxy reverso | `ProxyFix` para ler o IP real do cliente atrás do proxy do deploy |
+
+---
+
+## 7. Testes automatizados e qualidade de código
+
+São **166 testes** com cerca de **97% de cobertura**, separados por assunto:
+
+| Arquivo | Foco |
+|---------|------|
+| `tests/conftest.py` | Fixtures (`app_ctx`, cliente, cliente logado) com isolamento por teste |
+| `tests/test_auth.py` | Cadastro, login/logout, perfil, edição de perfil |
+| `tests/test_restaurantes.py` | Listagem, filtros, ordenação, paginação, detalhe |
+| `tests/test_avaliacoes.py` | Criação, edição, exclusão, duplicata, upload, 403/404 |
+| `tests/test_models.py` | Regras dos modelos e validadores customizados |
+| `tests/test_perfil_expandido.py` | Foto de perfil, idade, favoritos no perfil |
+| `tests/test_robustez.py` | Casos de borda e robustez |
+| `tests/test_deploy.py` | Configuração por ambiente, `/health`, fail-fast de `SECRET_KEY` |
+
+**Qualidade de código:** o projeto roda **ruff** (lint + PEP 8), guarda configs em `.env`, faz **logging** com `RotatingFileHandler`, tem páginas de erro próprias e mantém as responsabilidades bem separadas.
+
+```bash
+uv run pytest -q                                    # roda os 166 testes
+uv run pytest --cov=app --cov-report=term-missing   # com cobertura
+uv run ruff check app/ run.py seed.py               # lint
+```
+
+---
+
+## 8. Tecnologias utilizadas e justificativa
 
 | Tecnologia | Uso | Justificativa |
 |-----------|-----|---------------|
@@ -215,14 +393,16 @@ para `.png`) e usa pasta dedicada (`uploads/perfil/`), separada das fotos de ava
 | **Flask-Login** | Sessão e autenticação | Gerencia login e `@login_required` de forma idiomática |
 | **Flask-Talisman / Flask-Limiter** | Segurança | Cabeçalhos/CSP e rate limiting contra abuso |
 | **Bootstrap 5** | Frontend | Interface responsiva sem reinventar CSS |
-| **SQLite** | Banco de dados | Zero configuração para desenvolvimento e avaliação |
-| **pytest + pytest-cov** | Testes | 166 testes automatizados, ~97% de cobertura |
+| **SQLite** | Banco de dados | Zero configuração para desenvolvimento e avaliação; portável para PostgreSQL |
+| **pytest + pytest-cov** | Testes | 166 testes automatizados, cerca de 97% de cobertura |
+| **ruff** | Lint/formatação | Padronização de estilo (PEP 8) |
 | **uv** | Gestão de dependências | Instalação reprodutível e rápida (lockfile `uv.lock`) |
 
+> A gente foi de **Flask**, que é a stack vista em aula (a tal "vantagem natural" que o professor citou), e usou as extensões oficiais pra cada coisa: ORM, formulários, autenticação e segurança.
 
 ---
 
-## 6. Como rodar o projeto (passo a passo)
+## 9. Como rodar o projeto (passo a passo)
 
 ```bash
 # 1. Clonar e entrar no diretório
@@ -233,52 +413,66 @@ cd avaliacao-restaurantes
 uv venv --python 3.12
 uv sync
 
-# 3. Criar/atualizar o banco de dados (migrations)
+# 3. Configurar variáveis de ambiente (copie o template e ajuste)
+cp .env.example .env
+
+# 4. Criar/atualizar o banco de dados (migrations)
 FLASK_APP=run.py uv run flask db upgrade
 
-# 4. (Opcional) Popular com dados de exemplo
+# 5. (Opcional) Popular com dados de exemplo
 uv run python seed.py
 
-# 5. Rodar a aplicação
+# 6. Rodar a aplicação
 uv run python run.py
 ```
 
-A aplicação sobe em `http://127.0.0.1:5000`. As contas de exemplo do seed usam a senha
-`senha123`.
+A aplicação sobe em `http://127.0.0.1:5000`. O `seed.py` cria 8 usuários, 20 restaurantes e mais de 50 avaliações de exemplo; todas as contas de teste usam a senha `senha123`.
 
-**Rodar os testes:**
+### Variáveis de ambiente
 
-```bash
-uv run pytest -q                      # 166 testes
-uv run pytest --cov=app --cov-report=term-missing   # com cobertura
-```
+| Variável | Uso |
+|----------|-----|
+| `FLASK_APP` | Ponto de entrada (`run.py`) |
+| `FLASK_ENV` | `development`, `testing` ou `production` |
+| `SECRET_KEY` | Chave de sessão/CSRF (obrigatória em produção) |
+| `DATABASE_URL` | URL do banco (padrão: SQLite local) |
 
 ---
 
-## 7. Principais desafios encontrados e como eles foram resolvidos
+## 10. Deploy
 
-**1. Isolamento do banco nos testes.** O Flask-SQLAlchemy 3.x cria a *engine* em
-`init_app()` (não de forma preguiçosa), e a classe `Config` é avaliada em *import-time*.
-Alterar `SQLALCHEMY_DATABASE_URI` depois de `create_app()` não tinha efeito e os testes
-vazavam para o banco real. **Solução:** `create_app(test_config)` injeta a configuração de
-teste **antes** de `db.init_app(app)`, e a fixture `app_ctx` (function-scoped) empurra um
-contexto limpo por teste, evitando vazamento de `flask.g`/`current_user` entre testes.
+O projeto está no ar no **Render**, em https://avaliacao-restaurantes.onrender.com.
 
-**2. Upload de arquivos confiável.** Validar só pela extensão é inseguro. **Solução:**
-verificação de **magic bytes** no início do arquivo + limite de 2 MB
-(`MAX_CONTENT_LENGTH`) com handler dedicado para o erro 413, pastas separadas para fotos de
-avaliação e de perfil, e nomes de arquivo controlados (uuid / determinístico) para evitar
-*path traversal*.
+O `Procfile` define o que roda ao subir: `flask db upgrade` (aplica as migrations), `python seed.py` (popula os dados) e `gunicorn` (o servidor). O `/health` confirma que o banco está conectado.
 
-**3. Avaliações duplicadas.** Era possível um usuário avaliar o mesmo restaurante várias
-vezes. **Solução:** `UniqueConstraint(usuario_id, restaurante_id)` no banco **e** checagem
-na rota antes de renderizar o formulário, com redirect e mensagem.
+> Detalhe: no plano grátis do Render o SQLite fica num disco temporário, então o que os usuários criam se perde a cada novo deploy. Pra valer de verdade, é só apontar a `DATABASE_URL` pra um PostgreSQL, que o ORM cuida do resto.
 
-**4. Deprecação de `datetime.utcnow()` (Python 3.12).** **Solução:** troca por
-`datetime.now(timezone.utc)` (timezone-aware) em todos os modelos, sem necessidade de
-migration (muda apenas o default em Python).
+---
 
-**5. Persistência efêmera no deploy gratuito (Render).** O SQLite no plano free tem sistema
-de arquivos efêmero. **Solução documentada:** `seed.py` idempotente repopula a cada deploy;
-para persistência real, basta apontar `DATABASE_URL` para um PostgreSQL (o ORM já abstrai o
-banco).
+## 11. Principais desafios encontrados e como foram resolvidos
+
+**1. Isolar o banco nos testes.** O Flask-SQLAlchemy 3.x cria a *engine* logo no `init_app()`, e a classe `Config` é lida no momento do import. Por causa disso, mudar a `SQLALCHEMY_DATABASE_URI` depois do `create_app()` não surtia efeito e os testes acabavam mexendo no banco real. **Como resolvemos:** o `create_app(test_config)` passa a config de teste **antes** do `db.init_app(app)`, e a fixture `app_ctx` (por teste) cria um contexto limpo a cada vez, evitando que `flask.g`/`current_user` vazem de um teste pro outro.
+
+**2. Upload de arquivo seguro.** Validar só pela extensão não é confiável. **Como resolvemos:** conferimos os **magic bytes** no começo do arquivo, limitamos o tamanho a 2 MB (`MAX_CONTENT_LENGTH`) com um handler próprio pro erro 413, usamos pastas separadas pra foto de avaliação e de perfil, e geramos os nomes dos arquivos (`uuid4` / determinístico) pra evitar *path traversal*.
+
+**3. Avaliação repetida.** Dava pra um usuário avaliar o mesmo restaurante várias vezes. **Como resolvemos:** `UniqueConstraint(usuario_id, restaurante_id)` no banco **e** uma checagem na rota antes de abrir o formulário, com redirect e aviso.
+
+**4. `datetime.utcnow()` ficou obsoleto (Python 3.12).** **Como resolvemos:** trocamos por `datetime.now(timezone.utc)` (com fuso) em todos os modelos. Não precisou de migration, porque muda só o default no Python.
+
+**5. `SECRET_KEY` em produção.** Se ela ficasse vazia, a proteção de sessão e de CSRF seria desligada sem ninguém perceber. **Como resolvemos:** o `ProductionConfig` solta um `RuntimeError` quando a `SECRET_KEY` não está definida, ou seja, não deixa o app subir inseguro.
+
+**6. Dados que somem no deploy grátis (Render).** No plano free, o SQLite fica num disco temporário. **O que fizemos:** deixamos o `seed.py` idempotente pra repopular a cada deploy; e migrar pro PostgreSQL é só trocar a `DATABASE_URL`.
+
+---
+
+## 12. Atendimento aos critérios de avaliação
+
+| # | Critério | Como o projeto atende | Onde no código |
+|---|----------|------------------------|----------------|
+| 1 | Arquitetura Modular / Fábrica de Aplicação | `create_app(test_config)` com extensões via `init_app` e blueprints registrados | `app/__init__.py` |
+| 2 | Módulos / Blueprints / Rotas | 4 blueprints separados por domínio | `app/auth`, `restaurantes`, `avaliacoes`, `favoritos` |
+| 3 | Formulários e validação | WTForms + validadores customizados + constraints no banco | `app/forms.py`, `app/validators.py` |
+| 4 | Interface / Templates / Frontend | Jinja2 + Bootstrap 5 responsivo + validação client-side | `app/templates/`, `static/js/validacao.js` |
+| 5 | Testes automatizados | 166 testes, cerca de 97% de cobertura | `tests/` |
+| 6 | Persistência / ORM / Modelagem | SQLAlchemy (4 modelos) + Flask-Migrate (Alembic) + constraints | `app/models.py`, `migrations/` |
+| 7 | Qualidade e boas práticas | `.env`, logging, ruff, tratamento de erros, versionamento | `config.py`, `__init__.py`, `.gitignore` |
