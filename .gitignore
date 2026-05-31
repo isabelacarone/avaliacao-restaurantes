@@ -1,49 +1,44 @@
-# Ambiente virtual
+
 .venv/
 
-# Variáveis de ambiente — .env.example deve ser rastreado (template sem segredos)
+
 .env
 .env.*
-!.env.example
+
+.vscode/
 
 # Cache Python
 **/__pycache__/
 *.pyc
 *.pyo
 
-# Banco de dados (gerado localmente via flask db upgrade)
 instance/
 
-# Uploads dos usuários (conteúdo gerado em runtime)
+#  gerado em runtime
 app/static/uploads/*
 !app/static/uploads/.gitkeep
 
-# Build e distribuição
+
 dist/
 build/
 *.egg-info/
 
-# Relatório HTML do coverage
+
 htmlcov/
 
-# Relatório coverage XML
 coverage.xml
 .coverage
 
-# Cache do ruff e pytest
 .ruff_cache/
 .pytest_cache/
 
-# Logs de produção
 logs/
 
 DEPLOY.md
 
-# Backups e arquivos temporários
+
 *.bak
 *_test.db
 
-# configs claude local
-.claude/ 
 
-.specs/ 
+.claude/ 
