@@ -25,6 +25,9 @@ avaliacao-restaurantes/
 │   ├── avaliacoes/          # Blueprint: avaliações
 │   │   ├── __init__.py
 │   │   └── routes.py        # /avaliacoes/nova, /editar, /excluir
+│   ├── favoritos/           # Blueprint: favoritos
+│   │   ├── __init__.py
+│   │   └── routes.py        # /favoritos, /favoritos/<id>/adicionar, /remover
 │   ├── static/
 │   │   ├── js/
 │   │   │   └── validacao.js # Validação client-side + modal de confirmação
@@ -40,11 +43,15 @@ avaliacao-restaurantes/
 │       └── avaliacoes/
 │           ├── nova.html    # Formulário + preview de foto
 │           └── editar.html  # Edição com preview e exclusão
-├── tests/                   # Suite de testes automatizados
+├── tests/                   # Suite de testes automatizados (166 testes, ~97%)
 │   ├── conftest.py          # Fixtures compartilhadas
 │   ├── test_auth.py
 │   ├── test_restaurantes.py
-│   └── test_avaliacoes.py
+│   ├── test_avaliacoes.py
+│   ├── test_models.py
+│   ├── test_perfil_expandido.py
+│   ├── test_robustez.py
+│   └── test_deploy.py
 ├── seed.py                  # Popula o banco com dados de desenvolvimento
 ├── migrations/              # Alembic — histórico de schema
 │   ├── env.py
@@ -62,17 +69,20 @@ avaliacao-restaurantes/
 
 ### Model (app/models.py)
 
-Três entidades principais conectadas por chaves estrangeiras:
+Quatro entidades conectadas por chaves estrangeiras:
 
 ```
 Usuario ──< Avaliacao >── Restaurante
+   │                          │
+   └────────< Favorito >──────┘
 ```
 
 | Modelo | Campos principais |
 |---|---|
-| `Usuario` | id, nome, email, senha_hash, criado_em |
-| `Restaurante` | id, nome, categoria, faixa_preco, endereco, descricao |
+| `Usuario` | id, nome, email, senha_hash, foto_perfil_path, idade, criado_em |
+| `Restaurante` | id, nome, categoria, faixa_preco, endereco, descricao, deletado_em |
 | `Avaliacao` | id, usuario_id, restaurante_id, 4 notas, media_calculada, comentario, foto_path |
+| `Favorito` | id, usuario_id, restaurante_id, criado_em |
 
 ### View (templates/)
 
@@ -82,9 +92,10 @@ Templates Jinja2 que herdam de `base.html`. Todos usam `{% raw %}{% extends 'bas
 
 | Blueprint | Prefixo | Responsabilidade |
 |---|---|---|
-| `auth_bp` | — | Login, cadastro, logout, perfil |
+| `auth_bp` | — | Login, cadastro, logout, perfil, editar perfil |
 | `restaurantes_bp` | — | CRUD de restaurantes, filtros, paginação, ordenação |
 | `avaliacoes_bp` | — | CRUD de avaliações, upload, bloqueio de duplicata |
+| `favoritos_bp` | — | Adicionar, remover e listar favoritos |
 
 ---
 
@@ -128,5 +139,8 @@ FLASK_APP=run.py uv run flask db upgrade
 | Hash de senhas | `werkzeug.security.generate_password_hash` |
 | Proteção CSRF | Flask-WTF (token em todos os formulários) |
 | Autenticação de sessão | Flask-Login (`@login_required`) |
-| Validação de upload | Extensões permitidas + limite de 2 MB |
-| Nomes de arquivo | `uuid4()` — evita path traversal |
+| Validação de upload | Extensões permitidas + verificação de magic bytes + limite de 2 MB |
+| Nomes de arquivo | `uuid4()` (avaliações) / nome determinístico (perfil) — evita path traversal |
+| Cabeçalhos de segurança / CSP | Flask-Talisman (ativo fora de debug/testing) |
+| Rate limiting | Flask-Limiter (ex.: login 10/min, cadastro 5/h) |
+| `SECRET_KEY` em produção | Obrigatória — a aplicação falha ao iniciar se ausente |

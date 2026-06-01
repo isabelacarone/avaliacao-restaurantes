@@ -82,24 +82,24 @@ def create_app(test_config: dict | None = None) -> Flask:
             return {"status": "error", "db": "unavailable"}, 500
 
     @app.errorhandler(RequestEntityTooLarge)
-    def arquivo_muito_grande(e: RequestEntityTooLarge) -> tuple:
+    def arquivo_muito_grande(erro: RequestEntityTooLarge) -> tuple:
         app.logger.warning("Upload rejeitado (>2 MB): %s", request.path)
         flash("A foto deve ter no máximo 2 MB.", "danger")
         destino = request.referrer or url_for("restaurantes.listar")
         return redirect(destino), 302
 
     @app.errorhandler(404)
-    def pagina_nao_encontrada(e):
+    def pagina_nao_encontrada(erro):
         return render_template("erros/404.html"), 404
 
     @app.errorhandler(403)
-    def acesso_negado(e):
+    def acesso_negado(erro):
         return render_template("erros/403.html"), 403
 
     @app.errorhandler(500)
-    def erro_interno(e):
+    def erro_interno(erro):
         import traceback
-        app.logger.error("Erro interno: %s\n%s", e, traceback.format_exc())
+        app.logger.error("Erro interno: %s\n%s", erro, traceback.format_exc())
         return render_template("erros/500.html"), 500
 
     return app

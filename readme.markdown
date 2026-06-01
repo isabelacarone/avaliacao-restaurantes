@@ -1,243 +1,151 @@
-# Mesa Certa: Uma Rede Social de Avaliação de Restaurantes
+# Mesa Certa — Rede de Avaliação de Restaurantes
 
 **Programação Avançada para Web**
 
 **Autores:** Isabela Carone, Isabela Campagnollo e João Antônio
 
+Breve aplicativo web em Flask para cadastro e avaliação de restaurantes. Usuários podem criar contas, enviar avaliações com notas por critério (atendimento, ambiente, prato, preço), comentário e foto; a aplicação calcula médias e exibe listagens.
+
 ---
 
-## Sobre o projeto
-
-Plataforma web para avaliação de restaurantes construída com Flask, onde Usuários cadastram avaliações com notas por critério (atendimento, ambiente, prato, preço), comentário e foto. A aplicação também calcula a nota média de cada restaurante.
-
-**Tecnologias:** Flask 3, SQLAlchemy, Flask-Login, Flask-WTF, Bootstrap 5, SQLite, uv
+**Tecnologias principais**
+- Python 3.12+
+- Flask, SQLAlchemy
+- Flask-Login, Flask-WTF
+- Bootstrap 5
+- SQLite 
 
 ---
 
 ## Pré-requisitos
 
 - Python 3.12+
-- [uv](https://docs.astral.sh/uv/) 
+- Recomendado: `uv` 
 
-### Instalar o uv (caso não tenha)
+Instalar `uv` (opcional):
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-Verifique a instalação:
-
-```bash
 uv --version
 ```
 
 ---
 
-## Configuração do ambiente
-
-### 1. Clonar o repositório
+## Instalação e execução (Linux)
 
 ```bash
 git clone <url-do-repositorio>
 cd avaliacao-restaurantes
-```
 
-### 2. Criar o ambiente virtual
-
-```bash
+# criar ambiente virtual (opção uv)
 uv venv --python 3.12
-```
-
-Isso cria a pasta `.venv/` com Python 3.12 isolado.
-
-### 3. Ativar o ambiente virtual
-
-```bash
-# Linux / macOS
 source .venv/bin/activate
 
-# Windows (PowerShell)
-.venv\Scripts\Activate.ps1
+# ou usando venv do Python
+python -m venv .venv
+source .venv/bin/activate
+
+# instalar dependências
+uv pip install -e ".[dev]"      # ou: pip install -r requirements.txt
+
+# rodar a aplicação
+uv run python run.py            # ou: python run.py
 ```
-
-### 4. Instalar as dependências
-
-```bash
-uv pip install -e ".[dev]"
-```
-
-__O flag `-e` instala o projeto em modo editável__
-<br>
-__O `[dev]` inclui ferramentas de dev tipo o `ruff`__
-
 ---
 
-## Entendendo o uv.lock
+## Lockfile (`uv.lock`)
 
-O arquivo `uv.lock` registra as versões exatas de todas as dependências resolvidas. Ele garante que todo membro da equipe e qualquer ambiente de CI instale exatamente os mesmos pacotes.
-
-### Quando o uv.lock é atualizado?
-
-- Quando você adiciona ou remove dependências no `pyproject.toml`
-- Quando você roda `uv pip compile` manualmente
-
-### Instalar a partir do lockfile (reproduzir ambiente exato)
+O `uv.lock` fixa versões exatas das dependências. Para reproduzir o ambiente exato use:
 
 ```bash
 uv pip sync uv.lock
 ```
-### Regenerar o lockfile após mudar dependências
+
+Ao alterar dependências:
 
 ```bash
-# 1. Edite pyproject.toml adicionando/removendo pacotes
-
-# 2. Instale as novas dependências
-uv pip install -e ".[dev]"
-
-# 3. Atualize o lockfile
-uv pip compile pyproject.toml -o uv.lock
-```
-
-### Adicionar uma nova dependência
-
-```bash
-# Edite pyproject.toml manualmente, depois:
 uv pip install <pacote>
 uv pip compile pyproject.toml -o uv.lock
 ```
 
 ---
 
-## Rodando a aplicação
+## Seed e dados de teste
+
+Para popular o banco com dados de exemplo execute:
 
 ```bash
-uv run python run.py
+python seed.py
 ```
+
+No deploy atual (Render) o `seed.py` é executado automaticamente. Atenção: o Render free usa SQLite, dados persistentes exigem PostgreSQL ou outro serviço de banco.
 
 ---
 
-## Verificação rápida do código
+## Testes e qualidade de código
 
-O projeto usa [ruff](https://docs.astral.sh/ruff/), garantindo PEP 8
+Rodar testes:
 
 ```bash
-# Verificar erros
-uv run ruff check app/ run.py
+pytest -q
+```
 
-# Corrigir automaticamente os erros corrigíveis
+Gerar relatório de coverage (HTML e XML):
+
+```bash
+pytest --cov=app --cov-report=html --cov-report=xml
+```
+
+O relatório HTML será criado em `htmlcov/` e o relatório XML em `coverage.xml`.
+
+Lint/format (usando `ruff`):
+
+```bash
+uv run ruff check app/ run.py
 uv run ruff check --fix app/ run.py
 ```
 
 ---
 
-## Deploy no Render
+## Deploy
 
-A aplicação está hospedada em: **https://avaliacao-restaurantes.onrender.com**
+Aplicação hospedada em: https://avaliacao-restaurantes.onrender.com
 
-### Como funciona o deploy
-
-O Render detecta o `requirements.txt` automaticamente e usa o `Procfile` para iniciar a aplicação. A cada deploy, a sequência executada é:
+No Render o processo usa `requirements.txt` e `Procfile`. A sequência de deploy configurada é:
 
 ```
-flask db upgrade → python seed.py → gunicorn
+flask db upgrade && python seed.py && gunicorn
 ```
-
-### Configuração do serviço no Render
-
-| Campo | Valor |
-|---|---|
-| Environment | Python 3 |
-| Build Command | `pip install -r requirements.txt` |
-| Start Command | *(definido pelo Procfile)* |
-
-### Variáveis de ambiente necessárias
-
-| Variável | Valor |
-|---|---|
-| `FLASK_APP` | `run.py` |
-| `FLASK_ENV` | `production` |
-| `SECRET_KEY` | *(gerar automaticamente no painel)* |
-
-### Dados de teste
-
-O `seed.py` popula o banco automaticamente a cada deploy com restaurantes e usuários de exemplo. Todas as contas de teste usam a senha `senha123`:
-
-```
-ana@example.com / bruno@example.com / carla@example.com
-diego@example.com / elena@example.com / fabio@example.com
-```
-
-> **Atenção:** o Render free usa SQLite com sistema de arquivos efêmero. Dados criados pelos usuários (cadastros, avaliações) são perdidos a cada novo deploy. Para persistência real, seria necessário migrar para PostgreSQL.
 
 ---
 
-<!--
-## Estrutura do projeto
+## Estrutura do projeto (resumo)
 
 ```
 avaliacao-restaurantes/
-├── app/
-│   ├── __init__.py          # Application Factory
-│   ├── config.py            # Configurações
-│   ├── models.py            # Usuario, Restaurante, Avaliacao
-│   ├── forms.py             # Formulários WTForms
-│   ├── auth/                # Blueprint: login, cadastro, logout
-│   ├── restaurantes/        # Blueprint: listagem, detalhe, cadastro
-│   ├── avaliacoes/          # Blueprint: nova avaliação
-│   ├── static/uploads/      # Fotos enviadas pelos usuários
-│   └── templates/           # Templates Jinja2 (Bootstrap 5)
-├── docs/                    # Documentação técnica
-│   ├── arquitetura.md
-│   ├── modelos.md
-│   ├── rotas.md
-│   └── proximos-passos.md
-├── run.py                   # Ponto de entrada
-├── pyproject.toml           # Metadados e dependências
-└── uv.lock                  # Lockfile (versões exatas)
+├── app/                # aplicação (blueprints, models, forms, templates)
+├── docs/               # documentação técnica
+├── run.py              # entrypoint
+├── pyproject.toml
+├── requirements.txt
+└── uv.lock
 ```
 
----
-
-## Funcionalidades implementadas
-
-| ID | Descrição | Status |
-|---|---|---|
-| RF01 | Cadastro de usuários | ✅ |
-| RF02 | Login/logout | ✅ |
-| RF03 | Cadastro de restaurantes | ✅ |
-| RF04 | Listagem de restaurantes | ✅ |
-| RF05 | Avaliações com notas e comentários | ✅ |
-| RF06 | Cálculo e exibição de nota média | ✅ |
-| RF07 | Upload de foto na avaliação | ✅ |
-| RF08 | Busca por nome, categoria e faixa de preço | ✅ |
-| RF09 | Página de perfil do usuário | 🔲 pendente |
+Para detalhes da arquitetura e rotas, veja a pasta `docs/`.
 
 ---
 
-## Requisitos Funcionais e Não Funcionais
+## Autores
 
-### Requisitos Funcionais
+- Isabela Carone
 
-| ID | Descrição | Prioridade |
-|---|---|---|
-| RF01 | Cadastro com nome, e-mail e senha | Alta |
-| RF02 | Autenticação via e-mail e senha | Alta |
-| RF03 | Cadastro de restaurantes | Alta |
-| RF04 | Listagem de restaurantes | Alta |
-| RF05 | Avaliações com notas e comentários | Alta |
-| RF06 | Cálculo automático de nota média | Alta |
-| RF07 | Upload de imagem na avaliação | Média |
-| RF08 | Busca por nome, categoria e faixa de preço | Média |
-| RF09 | Página de perfil do usuário | Baixa |
+- Isabela Campagnollo 
 
-### Requisitos Não Funcionais
+- João Antônio
 
-| ID | Descrição | Status |
-|---|---|---|
-| RNF01 | Interface responsiva (Bootstrap 5) | ✅ |
-| RNF02 | Senhas com hash (Werkzeug PBKDF2) | ✅ |
-| RNF03 | Padrão MVC com Flask Blueprints | ✅ |
-| RNF04 | Páginas carregam em menos de 3 segundos | ✅ |
-| RNF05 | Versionado no GitHub | ✅ |
 
--->
+## Ferramentas utilizadas no desenvolvimento
+
+Utilizamos o **GitHub Copilot** para avaliação de PRs e auxílio na documentação técnica; **GitHub Copilot Agent** e **Claude Code** foram usados para solucionar incompatibilidades no deploy no Render. O **Claude Code** também foi utilizado para testes e revisão de código dentro do VS Code, garantindo maior escalabilidade e legibilidade das features.
+
+Utilizamos implementação via SDD (Spec Driven Development) para dois casos, a documentação relacionada está em `.specs/spec-conformidade-criterios.md` e `.specs/spec-perfil-usuario.md`.

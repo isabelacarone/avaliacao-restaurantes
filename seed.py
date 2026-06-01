@@ -733,12 +733,12 @@ def seed() -> None:
             if existente:
                 usuarios_criados.append(existente)
                 continue
-            u = Usuario(nome=dados["nome"], email=dados["email"])
-            u.set_senha(dados["senha"])
-            db.session.add(u)
+            usuario = Usuario(nome=dados["nome"], email=dados["email"])
+            usuario.set_senha(dados["senha"])
+            db.session.add(usuario)
             db.session.flush()
-            usuarios_criados.append(u)
-            print(f"  Usuário criado: {u.nome} ({u.email})")
+            usuarios_criados.append(usuario)
+            print(f"  Usuário criado: {usuario.nome} ({usuario.email})")
 
         restaurantes_criados: list[Restaurante] = []
         for dados in RESTAURANTES:
@@ -746,11 +746,11 @@ def seed() -> None:
             if existente:
                 restaurantes_criados.append(existente)
                 continue
-            r = Restaurante(**dados)
-            db.session.add(r)
+            restaurante = Restaurante(**dados)
+            db.session.add(restaurante)
             db.session.flush()
-            restaurantes_criados.append(r)
-            print(f"  Restaurante criado: {r.nome}")
+            restaurantes_criados.append(restaurante)
+            print(f"  Restaurante criado: {restaurante.nome}")
 
         for av_dados in AVALIACOES:
             usuario = usuarios_criados[av_dados["user"]]
@@ -781,8 +781,8 @@ def seed() -> None:
             f"\nBanco populado: {u_total} usuários · {r_total} restaurantes · {av_total} avaliações"
         )
         print("\nContas de teste (senha: senha123):")
-        for u in USUARIOS:
-            print(f"  {u['email']}")
+        for usuario in USUARIOS:
+            print(f"  {usuario['email']}")
 
 
 if __name__ == "__main__":

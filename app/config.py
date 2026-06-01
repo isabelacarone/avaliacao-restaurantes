@@ -11,7 +11,7 @@ ALLOWED_EXTENSIONS_PERFIL: set[str] = {"png", "jpg", "jpeg"}
 
 
 class Config:
-    """Configurações base — herdada por todas as outras."""
+    """Configurações base, herdada por todas as outras."""
 
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
     UPLOAD_FOLDER: str = UPLOAD_FOLDER
@@ -52,7 +52,13 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     @classmethod
     def init(cls) -> None:
-        cls.SECRET_KEY = os.environ.get("SECRET_KEY") or ""
+        secret = os.environ.get("SECRET_KEY")
+        if not secret:
+            raise RuntimeError(
+                "SECRET_KEY é obrigatória em produção. "
+                "Defina a variável de ambiente antes de iniciar a aplicação."
+            )
+        cls.SECRET_KEY = secret
         cls.SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///mesa_certa.db")
 
 
