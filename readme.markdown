@@ -2,8 +2,6 @@
 
 **Programação Avançada para Web**
 
-**Autores:** Isabela Carone, Isabela Campagnollo e João Antônio
-
 Breve aplicativo web em Flask para cadastro e avaliação de restaurantes. Usuários podem criar contas, enviar avaliações com notas por critério (atendimento, ambiente, prato, preço), comentário e foto; a aplicação calcula médias e exibe listagens.
 
 ---
