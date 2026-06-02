@@ -1,10 +1,10 @@
-# Mesa Certa — Rede de Avaliação de Restaurantes
+# Mesa Certa - Rede de Avaliação de Restaurantes
 
 **Programação Avançada para Web**
 
-**Autores:** Isabela Carone, Isabela Campagnollo e João Antônio
-
 Breve aplicativo web em Flask para cadastro e avaliação de restaurantes. Usuários podem criar contas, enviar avaliações com notas por critério (atendimento, ambiente, prato, preço), comentário e foto; a aplicação calcula médias e exibe listagens.
+
+Documentação de entrega em: `docs/documentacao-entrega.html` ou `docs/documentacao-entrega.md`
 
 ---
 
@@ -135,6 +135,14 @@ Para detalhes da arquitetura e rotas, veja a pasta `docs/`.
 
 ---
 
+## Ferramentas utilizadas no desenvolvimento
+
+Utilizamos o **GitHub Copilot** para avaliação de PRs e auxílio na documentação técnica; **GitHub Copilot Agent** e **Claude Code** foram usados para solucionar incompatibilidades no deploy no Render. O **Claude Code** também foi utilizado para testes e revisão de código dentro do VS Code, garantindo maior escalabilidade e legibilidade das features.
+
+Utilizamos implementação via SDD (Spec Driven Development) para dois casos, a documentação relacionada está em `.specs/spec-conformidade-criterios.md` e `.specs/spec-perfil-usuario.md`.
+
+---
+
 ## Autores
 
 - Isabela Carone
@@ -142,10 +150,3 @@ Para detalhes da arquitetura e rotas, veja a pasta `docs/`.
 - Isabela Campagnollo 
 
 - João Antônio
-
-
-## Ferramentas utilizadas no desenvolvimento
-
-Utilizamos o **GitHub Copilot** para avaliação de PRs e auxílio na documentação técnica; **GitHub Copilot Agent** e **Claude Code** foram usados para solucionar incompatibilidades no deploy no Render. O **Claude Code** também foi utilizado para testes e revisão de código dentro do VS Code, garantindo maior escalabilidade e legibilidade das features.
-
-Utilizamos implementação via SDD (Spec Driven Development) para dois casos, a documentação relacionada está em `.specs/spec-conformidade-criterios.md` e `.specs/spec-perfil-usuario.md`.
